@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LUKE AI — Intelligent Assistant by R Jan Steve Daniel</title>
+  <meta name="description" content="LUKE AI is a lightning-fast intelligent assistant powered by Groq LPU. Built by R Jan Steve Daniel. Ask anything — get instant, spoken answers.">
+  <meta name="keywords" content="AI assistant, chatbot, Groq, LLM, voice assistant, R Jan Steve Daniel">
+  <meta name="author" content="R Jan Steve Daniel">
+  <meta property="og:title" content="LUKE AI — Intelligent Assistant">
+  <meta property="og:description" content="A blazing-fast AI assistant with voice capabilities, powered by Groq LPU inference.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- HEADER -->
+    <header id="header">
+      <div class="header-left">
+        <div class="logo-mark">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="13" stroke="url(#logoGrad)" stroke-width="2"/>
+            <circle cx="14" cy="14" r="6" fill="url(#logoGrad)"/>
+            <defs>
+              <linearGradient id="logoGrad" x1="0" y1="0" x2="28" y2="28">
+                <stop stop-color="#6C63FF"/>
+                <stop offset="1" stop-color="#3B82F6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-name">LUKE AI</span>
+          <span class="logo-tag">by R Jan Steve Daniel</span>
+        </div>
+      </div>
+      <div class="header-center">
+        <div class="status-badge" id="status-badge">
+          <span class="status-dot"></span>
+          <span class="status-label" id="status-label">Ready</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="icon-btn" id="theme-toggle" title="Toggle theme" aria-label="Toggle dark/light theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="icon-btn" id="settings-toggle" title="Settings" aria-label="Open settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- SETTINGS PANEL -->
+    <div id="settings-panel" class="settings-panel hidden">
+      <div class="settings-inner">
+        <div class="settings-group">
+          <label class="settings-label" for="api-key-input">Groq API Key</label>
+          <div class="key-input-row">
+            <input type="password" id="api-key-input" class="settings-input" placeholder="gsk_..." autocomplete="off">
+            <button id="connect-btn" class="btn-primary">Connect</button>
+          </div>
+          <p class="settings-hint">Get your free key at <a href="https://console.groq.com" target="_blank" rel="noopener">console.groq.com</a></p>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label" for="model-select">Model</label>
+          <select id="model-select" class="settings-select">
+            <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Best)</option>
+            <option value="llama-3.1-8b-instant" selected>Llama 3.1 8B (Fastest)</option>
+            <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+            <option value="gemma2-9b-it">Gemma 2 9B</option>
+          </select>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label">Voice Response</label>
+          <div class="toggle-row">
+            <span class="toggle-label-text">Speak answers aloud</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="auto-speak" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label">Voice Speed</label>
+          <input type="range" id="voice-speed" min="0.5" max="2" step="0.1" value="1" class="settings-range">
+          <span class="range-val" id="speed-val">1.0x</span>
+        </div>
+        <div class="settings-group usage-info">
+          <label class="settings-label">Usage & Limits (Groq Free Tier)</label>
+          <ul class="limits-list">
+            <li>30 requests / minute</li>
+            <li>14,400 requests / day</li>
+            <li>~6,000 tokens / minute (Llama 70B)</li>
+            <li>No credit card required</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT AREA -->
+    <main id="chat-area">
+      <div id="welcome-screen">
+        <div class="welcome-icon">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+            <circle cx="28" cy="28" r="27" stroke="url(#wGrad)" stroke-width="2" opacity="0.5"/>
+            <circle cx="28" cy="28" r="18" stroke="url(#wGrad)" stroke-width="1.5" opacity="0.3"/>
+            <circle cx="28" cy="28" r="10" fill="url(#wGrad)" opacity="0.8"/>
+            <defs>
+              <linearGradient id="wGrad" x1="0" y1="0" x2="56" y2="56">
+                <stop stop-color="#6C63FF"/>
+                <stop offset="1" stop-color="#3B82F6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h1 class="welcome-title">Hello, I'm <span class="gradient-text">LUKE AI</span></h1>
+        <p class="welcome-sub">Your lightning-fast intelligent assistant. Ask me anything.</p>
+        <div class="welcome-chips">
+          <button class="chip" data-prompt="Explain quantum computing in one sentence">⚛️ Quantum computing?</button>
+          <button class="chip" data-prompt="Write a Python function to reverse a string">🐍 Python help</button>
+          <button class="chip" data-prompt="What are the latest trends in AI?">🤖 AI trends</button>
+          <button class="chip" data-prompt="Who created you?">👤 Who made you?</button>
+        </div>
+        <p class="welcome-footer">Developed by <strong>R Jan Steve Daniel</strong> · Powered by Groq LPU</p>
+      </div>
+
+      <div id="messages"></div>
+    </main>
+
+    <!-- INPUT BAR -->
+    <div id="input-bar">
+      <div class="input-container">
+        <button id="voice-btn" class="input-icon-btn" title="Voice input" aria-label="Start voice input">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="2" width="6" height="11" rx="3"/>
+            <path d="M19 10a7 7 0 0 1-14 0"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
+        <textarea id="user-input" placeholder="Message LUKE AI..." rows="1" autocomplete="off"></textarea>
+        <button id="send-btn" class="input-icon-btn send" title="Send message" aria-label="Send message" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+      <p class="input-footer">LUKE AI can make mistakes. Verify important info. · <button id="clear-chat" class="link-btn">Clear chat</button></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

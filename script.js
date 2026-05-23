@@ -40,8 +40,7 @@ Rules:
   const sendBtn = $('send-btn');
   const voiceBtn = $('voice-btn');
   const clearBtn = $('clear-chat');
-  const connectBtn = $('connect-btn');
-  const apiKeyInput = $('api-key-input');
+  const exportBtn = $('export-chat');
   const modelSelect = $('model-select');
   const settingsToggle = $('settings-toggle');
   const settingsPanel = $('settings-panel');
@@ -54,11 +53,7 @@ Rules:
 
   // ===== INIT =====
   function init() {
-    // Restore saved settings
-    if (apiKey) {
-      apiKeyInput.value = '••••••••••••';
-      setStatus('ready', 'Connected');
-    }
+    setStatus('ready', 'Ready');
     modelSelect.value = model;
 
     // Theme
@@ -97,11 +92,6 @@ Rules:
       sendBtn.disabled = !userInput.value.trim();
     });
 
-    connectBtn.addEventListener('click', handleConnect);
-    apiKeyInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') handleConnect();
-    });
-
     modelSelect.addEventListener('change', (e) => {
       model = e.target.value;
       localStorage.setItem('luke_model', model);
@@ -114,6 +104,7 @@ Rules:
     themeToggle.addEventListener('click', toggleTheme);
     voiceBtn.addEventListener('click', toggleVoice);
     clearBtn.addEventListener('click', clearChat);
+    exportBtn.addEventListener('click', exportChat);
 
     voiceSpeedSlider.addEventListener('input', (e) => {
       speedValEl.textContent = parseFloat(e.target.value).toFixed(1) + 'x';
@@ -154,41 +145,29 @@ Rules:
     statusLabel.textContent = text;
   }
 
-  // ===== CONNECT =====
-  function handleConnect() {
-    const key = apiKeyInput.value.trim();
-    if (!key || key === '••••••••••••') {
-      if (!apiKey) {
-        shake(apiKeyInput);
-        return;
-      }
-      return;
-    }
-    apiKey = key;
-    localStorage.setItem('luke_api_key', apiKey);
-    apiKeyInput.value = '••••••••••••';
-    setStatus('ready', 'Connected');
-    settingsPanel.classList.add('hidden');
-  }
-
-  function shake(el) {
-    el.style.animation = 'none';
-    el.offsetHeight; // trigger reflow
-    el.style.animation = 'shake 0.4s ease';
-    setTimeout(() => (el.style.animation = ''), 400);
+  // ===== EXPORT CHAT =====
+  function exportChat() {
+    if (conversationHistory.length === 0) return;
+    let md = `# LUKE AI Chat History\n*Developed by R Jan Steve Daniel*\n\n`;
+    conversationHistory.forEach((msg) => {
+      const role = msg.role === 'user' ? 'You' : 'LUKE AI';
+      md += `### **${role}**\n${msg.content}\n\n`;
+    });
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `luke_ai_chat_${Date.now()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   // ===== SEND MESSAGE =====
   async function handleSend() {
     const text = userInput.value.trim();
     if (!text || isProcessing) return;
-
-    if (!apiKey) {
-      settingsPanel.classList.remove('hidden');
-      shake(apiKeyInput);
-      apiKeyInput.focus();
-      return;
-    }
 
     // Hide welcome, show messages
     welcomeScreen.style.display = 'none';

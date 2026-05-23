@@ -3,7 +3,7 @@
 > **A blazing-fast, voice-enabled AI assistant powered by Groq LPU inference.**
 > Developed by **R Jan Steve Daniel**.
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-LUKE_AI-6C63FF?style=for-the-badge)](https://rjanstevedaniel.github.io/luke-ai/)
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-LUKE_AI-6C63FF?style=for-the-badge)](https://janstevedaniel.github.io/luke-ai/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](./LICENSE)
 [![Groq](https://img.shields.io/badge/Powered_by-Groq_LPU-F55036?style=for-the-badge)](https://groq.com)
 
@@ -81,7 +81,7 @@ It features a polished, professional UI inspired by leading AI products (Claude,
 ## 🏁 Quick Start
 
 ### Option 1: Use the Live Demo
-1. Visit the [live demo](https://rjanstevedaniel.github.io/luke-ai/)
+1. Visit the [live demo](https://janstevedaniel.github.io/luke-ai/)
 2. Get a free API key from [console.groq.com](https://console.groq.com)
 3. Paste your key in settings → Click **Connect**
 4. Start chatting!
@@ -89,7 +89,7 @@ It features a polished, professional UI inspired by leading AI products (Claude,
 ### Option 2: Run Locally
 ```bash
 # Clone the repository
-git clone https://github.com/rjanstevedaniel/luke-ai.git
+git clone https://github.com/JANSTEVEDANIEL/luke-ai.git
 cd luke-ai
 
 # Open in browser (no build step needed!)

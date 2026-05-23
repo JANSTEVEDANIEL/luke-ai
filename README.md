@@ -35,11 +35,12 @@ It features a polished, professional UI inspired by leading AI products (Claude,
 ## 🚀 Features
 
 - ⚡ **Blazing Fast** — Powered by Groq LPU, responses arrive in <500ms
+- 🔑 **Default Key Pre-configured** — Ready to use out of the box with default Groq API Key!
 - 🎙️ **Voice Input** — Click the mic button and speak naturally
-- 🔊 **Voice Output** — AI speaks its responses aloud (toggle on/off)
-- 🌗 **Dark / Light Theme** — Beautiful UI in both modes
+- 🔊 **Instant Voice Output** — Browser-unlocking speech technology speaks answers aloud immediately
+- 🌗 **High-Contrast Themes** — Pure black background in dark mode, pure white background in light mode
+- 📋 **Code Copying** — Single-click copy button on every code block
 - 📱 **Mobile Responsive** — Works perfectly on phones and tablets
-- 🔐 **Privacy First** — API key stored only in your browser's localStorage
 - 💬 **Smart Context** — Maintains conversation history for contextual replies
 - 🎛️ **Configurable** — Choose models, voice speed, auto-speak settings
 - 🪶 **Token Efficient** — Minimal system prompt + smart token budgeting
@@ -82,9 +83,8 @@ It features a polished, professional UI inspired by leading AI products (Claude,
 
 ### Option 1: Use the Live Demo
 1. Visit the [live demo](https://janstevedaniel.github.io/luke-ai/)
-2. Get a free API key from [console.groq.com](https://console.groq.com)
-3. Paste your key in settings → Click **Connect**
-4. Start chatting!
+2. Start chatting immediately! A default Groq API key is pre-configured.
+3. If you want to use your own key, open settings and click **Connect**.
 
 ### Option 2: Run Locally
 ```bash
@@ -134,7 +134,7 @@ I built LUKE AI to demonstrate that a powerful, production-quality AI assistant 
 
 ### Main Purpose
 
-To create a **free, fast, beautiful AI assistant** that anyone can use or fork — proving that powerful AI tools don't need to be expensive or complicated.
+To create a **free, fast, beautiful, and pre-configured AI assistant** that anyone can use instantly — demonstrating technical competence in frontend optimization, API integration, and user accessibility.
 
 ---
 

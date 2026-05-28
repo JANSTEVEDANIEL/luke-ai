@@ -34,17 +34,18 @@ It features a polished, professional UI inspired by leading AI products (Claude,
 
 ## 🚀 Features
 
-- ⚡ **Blazing Fast** — Powered by Groq LPU, responses arrive in <500ms
+- ⚡ **Streaming Responses** — Real-time, word-by-word streaming using Server-Sent Events (SSE).
+- 🔍 **Real-Time Web Search** — Built-in client-side agent tool calling that queries the Wikipedia Search and page summary API for current information.
+- 📄 **PDF & Document Chat** — Client-side text-extraction pipeline using `pdf.js` and `FileReader` to query PDFs, `.txt`, `.md`, `.csv`, and `.json` documents.
+- 💬 **Conversation Threads** — Create, switch, name, and delete multiple chats, automatically saved and persisted in the browser via `localStorage`.
+- 📊 **Inference Metrics** — Real-time display of response latency (Time to First Token - TTFT) and token generation speed (tokens/sec).
+- 🎙️ **Voice I/O** — Built-in Speech-to-Text (STT) voice input and browser-unlocked text-to-speech (TTS) voice reading.
+- 🌗 **High-Contrast Themes** — Pure black background in dark mode, pure white background in light mode.
 - 🔑 **Default Key Pre-configured** — Ready to use out of the box with default Groq API Key!
-- 🎙️ **Voice Input** — Click the mic button and speak naturally
-- 🔊 **Instant Voice Output** — Browser-unlocking speech technology speaks answers aloud immediately
-- 🌗 **High-Contrast Themes** — Pure black background in dark mode, pure white background in light mode
-- 📋 **Code Copying** — Single-click copy button on every code block
-- 📱 **Mobile Responsive** — Works perfectly on phones and tablets
-- 💬 **Smart Context** — Maintains conversation history for contextual replies
-- 🎛️ **Configurable** — Choose models, voice speed, auto-speak settings
-- 🪶 **Token Efficient** — Minimal system prompt + smart token budgeting
-- 🆓 **100% Free** — No backend, no hosting costs, no API fees on free tier
+- 📋 **Code Copying** — Single-click copy button on every code block.
+- 🖥️ **System Architecture Modal** — A visual layout of the application showing how the frontend, Groq LPU, and tool calling interface.
+- ⌨️ **Keyboard Shortcuts** — Full set of accessibility hotkeys (`Ctrl+K`, `Ctrl+B`, `Ctrl+Shift+N`, etc.) for keyboard-driven use.
+- 🆓 **100% Free** — No backend, no hosting costs, no API fees on the free tier.
 
 ---
 
@@ -141,20 +142,20 @@ To create a **free, fast, beautiful, and pre-configured AI assistant** that anyo
 ## ⚠️ Limitations
 
 - **Browser-dependent voice**: Speech recognition works best in Chrome/Edge. Safari has limited support.
-- **No persistent memory**: Conversation history resets on page refresh (stored in-memory only for privacy)
-- **Rate limits**: Free Groq tier has 30 req/min and 14,400 req/day caps
-- **No file upload**: Currently text and voice input only
-- **No image generation**: Text-only responses
-- **API key required**: Users must bring their own Groq API key (free to obtain)
+- **Rate limits**: Free Groq tier has 30 req/min and 14,400 req/day caps.
+- **No image generation**: Text-only responses.
+- **Preloaded key**: Users can use the pre-configured default key, or bring their own key for unlimited personal use.
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] Streaming responses (word-by-word display)
-- [ ] Conversation export (JSON/Markdown)
-- [ ] Multiple conversation threads
-- [ ] Code syntax highlighting
+- [x] Streaming responses (word-by-word display)
+- [x] Conversation export (Markdown format)
+- [x] Multiple conversation threads
+- [x] Code copy & formatting
+- [x] PDF & document parsing (client-side text extraction)
+- [x] Real-time Web Search (agentic tool calling Wikipedia)
 - [ ] Image input support (multimodal models)
 - [ ] PWA support (install as app)
 

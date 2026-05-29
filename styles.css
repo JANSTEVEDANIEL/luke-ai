@@ -1,35 +1,44 @@
 /* ==========================================================================
-   DESIGN TOKENS & Obsidian THEME VARIABLES
+   DESIGN TOKENS & ADAPTIVE THEME SYSTEM
    ========================================================================== */
 :root {
-  /* Obsidian Color System */
+  /* Obsidian Theme Palette (Default Dark Mode) */
   --bg-base: #0A0A0C;             /* Deep obsidian background */
-  --bg-surface-low: #101012;      /* Sidebar and low-priority surfaces */
-  --bg-surface: #141417;          /* Cards, panels, default container surface */
-  --bg-surface-high: #1E1E22;     /* Dropdowns, highlights, modals */
-  --bg-input: #121215;            /* Input field base */
+  --bg-surface-low: #101012;      /* Sidebar background & code containers */
+  --bg-surface: #141417;          /* Card panels and default container elements */
+  --bg-surface-high: #1E1E22;     /* Active dropdown highlights, buttons, and modals */
+  --bg-input: #121215;            /* Floating input area base */
   
-  /* Accent Colors (Electric Indigo & Sleek Slate) */
-  --color-primary: #6366f1;        /* Primary Indigo */
-  --color-primary-dim: #c0c1ff;    /* Light Indigo for text highlights */
+  /* Primary HSL Gradients and glows (Electric Indigo) */
+  --color-primary: #6366f1;        /* Main Indigo */
+  --color-primary-dim: #c0c1ff;    /* Light highlight indigo text */
   --color-primary-glow: rgba(99, 102, 241, 0.15);
   
-  --color-secondary: #94a3b8;      /* Mid slate text */
-  --color-secondary-dim: #b9c8de;  /* Light slate */
+  --color-secondary: #94a3b8;      /* Mid-tone slate text */
+  --color-secondary-dim: #b9c8de;  /* Light slate body text */
   
-  /* Standard States */
+  /* Standard Semantic States */
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
   
-  /* Borders & Divider Opacities */
+  /* Adaptive Text Color System */
+  --text-title: #ffffff;          /* Standard titles, headers and bold text */
+  --text-main: #b9c8de;           /* Standard readable body text */
+  --text-muted: #94a3b8;          /* Muted descriptions and secondary tags */
+  
+  /* HSL Translucent Variables for Glassmorphism */
+  --bg-glass-panel: rgba(20, 20, 23, 0.65);
+  --bg-glass-pill: rgba(16, 16, 18, 0.85);
+  --bg-bento-card: rgba(20, 20, 23, 0.4);
+  --border-glass: rgba(255, 255, 255, 0.05);
+  --border-pill: rgba(255, 255, 255, 0.1);
+  --bg-code-header: rgba(0, 0, 0, 0.25);
+  
+  /* Borders & Dividers */
   --border-light: rgba(255, 255, 255, 0.05);
   --border-medium: rgba(255, 255, 255, 0.1);
   --border-active: rgba(99, 102, 241, 0.4);
-  
-  /* Typography scale */
-  --font-sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   
   /* Geometry & Rhythm */
   --radius-sm: 6px;
@@ -37,6 +46,7 @@
   --radius-lg: 16px;
   --radius-full: 9999px;
   
+  /* Shadow Elevations */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.6);
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.8);
@@ -45,18 +55,21 @@
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   
-  /* HSL Tailored Gradients */
+  --font-sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
   --gradient-logo: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
   --gradient-shimmer: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0) 100%);
 }
 
-/* Light Theme Variables Override */
+/* Premium Light Mode Custom Overrides */
 [data-theme="light"] {
+  /* Crisp light slate palette */
   --bg-base: #f8fafc;
   --bg-surface-low: #f1f5f9;
   --bg-surface: #ffffff;
   --bg-surface-high: #e2e8f0;
-  --bg-input: #f8fafc;
+  --bg-input: #ffffff;
   
   --color-primary: #4f46e5;
   --color-primary-dim: #312e81;
@@ -65,14 +78,31 @@
   --color-secondary: #475569;
   --color-secondary-dim: #1e293b;
   
-  --border-light: rgba(0, 0, 0, 0.06);
-  --border-medium: rgba(0, 0, 0, 0.12);
-  --border-active: rgba(79, 70, 229, 0.5);
+  /* Adaptive Text Color System for Light Mode */
+  --text-title: #0f172a;          /* Slate-900 for perfect title contrast */
+  --text-main: #334155;           /* Slate-700 for comfortable long reading */
+  --text-muted: #64748b;          /* Slate-500 for captions and details */
   
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.08);
-  --shadow-glow: 0 4px 30px rgba(79, 70, 229, 0.05);
+  /* Glassmorphism Variables for Light Mode */
+  --bg-glass-panel: rgba(255, 255, 255, 0.7);
+  --bg-glass-pill: rgba(248, 250, 252, 0.85);
+  --bg-bento-card: rgba(255, 255, 255, 0.8);
+  --border-glass: rgba(0, 0, 0, 0.05);
+  --border-pill: rgba(0, 0, 0, 0.08);
+  --bg-code-header: rgba(0, 0, 0, 0.03);
+  
+  /* Dividers & Borders */
+  --border-light: rgba(0, 0, 0, 0.05);
+  --border-medium: rgba(0, 0, 0, 0.1);
+  --border-active: rgba(79, 70, 229, 0.45);
+  
+  /* Shadows Adaptations */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 4px 30px rgba(79, 70, 229, 0.03);
+  
+  --gradient-shimmer: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.015) 50%, rgba(0,0,0,0) 100%);
 }
 
 /* ==========================================================================
@@ -94,12 +124,13 @@ body {
   height: 100%;
   font-family: var(--font-sans);
   background-color: var(--bg-base);
-  color: var(--color-secondary-dim);
+  color: var(--text-main);
   overflow: hidden;
   line-height: 1.6;
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
 a {
@@ -129,21 +160,23 @@ input, select, textarea {
 }
 
 /* ==========================================================================
-   GLASSMORPHISM & ACCENTS
+   GLASSMORPHISM & GLOW ACCENTS
    ========================================================================== */
 .glass-panel {
-  background: rgba(20, 20, 23, 0.65);
+  background: var(--bg-glass-panel);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border-glass);
+  transition: background var(--transition-normal), border var(--transition-normal);
 }
 
 .glass-pill {
-  background: rgba(16, 16, 18, 0.85);
+  background: var(--bg-glass-pill);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-medium);
+  border: 1px solid var(--border-pill);
   box-shadow: var(--shadow-md), var(--shadow-glow);
+  transition: background var(--transition-normal), border var(--transition-normal), box-shadow var(--transition-normal);
 }
 
 .ai-glow {
@@ -187,7 +220,7 @@ input, select, textarea {
   flex-direction: column;
   height: 100%;
   flex-shrink: 0;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color var(--transition-normal), border var(--transition-normal);
   z-index: 200;
   overflow: hidden;
 }
@@ -222,13 +255,13 @@ input, select, textarea {
 .brand-text h1 {
   font-size: 1.15rem;
   font-weight: 600;
-  color: var(--color-primary-dim);
+  color: var(--text-title);
   letter-spacing: -0.02em;
 }
 
 .brand-text p {
   font-size: 0.75rem;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 500;
@@ -282,7 +315,7 @@ input, select, textarea {
   justify-content: space-between;
   padding: 9px 12px;
   border-radius: var(--radius-md);
-  color: var(--color-secondary);
+  color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 500;
   transition: all var(--transition-fast);
@@ -293,7 +326,11 @@ input, select, textarea {
 
 .thread-item:hover {
   background-color: rgba(255, 255, 255, 0.03);
-  color: var(--color-secondary-dim);
+  color: var(--text-main);
+}
+
+[data-theme="light"] .thread-item:hover {
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .thread-item.active {
@@ -312,7 +349,7 @@ input, select, textarea {
 
 .thread-delete-btn {
   opacity: 0;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   transition: opacity var(--transition-fast), color var(--transition-fast);
   padding: 2px;
   border-radius: 4px;
@@ -356,9 +393,13 @@ input, select, textarea {
   border: 1px solid var(--border-light);
   font-size: 0.78rem;
   font-weight: 500;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   background-color: rgba(0, 0, 0, 0.15);
   transition: all var(--transition-fast);
+}
+
+[data-theme="light"] .footer-action-btn {
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .footer-action-btn:hover {
@@ -367,13 +408,17 @@ input, select, textarea {
   border-color: rgba(99, 102, 241, 0.2);
 }
 
+[data-theme="light"] .footer-action-btn:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
 .sidebar-meta {
   text-align: center;
 }
 
 .sidebar-stats {
   font-size: 0.78rem;
-  color: var(--color-secondary);
+  color: var(--text-muted);
 }
 
 .creator-tag {
@@ -411,6 +456,7 @@ input, select, textarea {
   min-width: 0;
   position: relative;
   background-color: var(--bg-base);
+  transition: background-color var(--transition-normal);
 }
 
 /* Header styling */
@@ -438,7 +484,7 @@ input, select, textarea {
 .header-brand-mobile h2 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--color-primary-dim);
+  color: var(--text-title);
 }
 
 .header-icon-btn {
@@ -448,7 +494,7 @@ input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   transition: all var(--transition-fast);
   border: 1px solid transparent;
 }
@@ -457,6 +503,10 @@ input, select, textarea {
   background-color: rgba(255, 255, 255, 0.03);
   color: var(--color-primary-dim);
   border-color: var(--border-light);
+}
+
+[data-theme="light"] .header-icon-btn:hover {
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .header-icon-btn:active {
@@ -536,11 +586,15 @@ input, select, textarea {
   border-radius: var(--radius-full);
   font-size: 0.78rem;
   font-family: var(--font-mono);
-  color: var(--color-secondary);
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   gap: 4px;
   transition: all var(--transition-fast);
+}
+
+[data-theme="light"] .metric {
+  background-color: rgba(0, 0, 0, 0.015);
 }
 
 .response-metrics:hover .metric {
@@ -585,7 +639,7 @@ input, select, textarea {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   margin-bottom: 8px;
 }
 
@@ -595,7 +649,7 @@ input, select, textarea {
   border-radius: var(--radius-md);
   border: 1px solid var(--border-medium);
   background-color: var(--bg-input);
-  color: var(--color-secondary-dim);
+  color: var(--text-main);
   font-size: 0.9rem;
   outline: none;
   cursor: pointer;
@@ -619,7 +673,7 @@ input, select, textarea {
 
 .toggle-label-text {
   font-size: 0.9rem;
-  color: var(--color-secondary);
+  color: var(--text-main);
 }
 
 .toggle-switch {
@@ -654,6 +708,11 @@ input, select, textarea {
   top: 3px;
   left: 3px;
   transition: var(--transition-fast);
+}
+
+[data-theme="light"] .toggle-slider::before {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
 
 .toggle-switch input:checked + .toggle-slider {
@@ -746,13 +805,13 @@ input, select, textarea {
 .welcome-title {
   font-size: 2.2rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-title);
   letter-spacing: -0.03em;
 }
 
 .welcome-subtitle {
   font-size: 1.1rem;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   margin-top: 10px;
   max-width: 500px;
   font-weight: 400;
@@ -769,8 +828,8 @@ input, select, textarea {
 }
 
 .bento-card {
-  background: rgba(20, 20, 23, 0.4);
-  border: 1px solid var(--border-light);
+  background: var(--bg-bento-card);
+  border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   padding: 24px;
   text-align: left;
@@ -797,6 +856,12 @@ input, select, textarea {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), var(--shadow-glow);
 }
 
+[data-theme="light"] .bento-card:hover {
+  background-color: rgba(0, 0, 0, 0.005);
+  border-color: rgba(79, 70, 229, 0.2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05), var(--shadow-glow);
+}
+
 .bento-card:hover::before {
   transform: translateX(100%);
 }
@@ -805,12 +870,12 @@ input, select, textarea {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-md);
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--bg-surface-low);
   border: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   margin-bottom: 16px;
   transition: all var(--transition-fast);
 }
@@ -824,13 +889,13 @@ input, select, textarea {
 .bento-card h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-title);
   margin-bottom: 8px;
 }
 
 .bento-card p {
   font-size: 0.88rem;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   line-height: 1.5;
   flex: 1;
 }
@@ -850,12 +915,12 @@ input, select, textarea {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-md);
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--bg-surface-low);
   border: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   transition: all var(--transition-fast);
 }
 
@@ -880,7 +945,7 @@ input, select, textarea {
 
 .welcome-footer-info {
   font-size: 0.8rem;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -894,7 +959,7 @@ input, select, textarea {
 }
 
 .welcome-footer-info kbd {
-  background: var(--bg-surface);
+  background: var(--bg-surface-high);
   border: 1px solid var(--border-medium);
   border-bottom-width: 2px;
   padding: 1px 5px;
@@ -943,6 +1008,7 @@ input, select, textarea {
   font-size: 0.88rem;
   background-color: var(--bg-surface-high);
   border: 1px solid var(--border-light);
+  color: var(--text-title);
 }
 
 .message.user {
@@ -955,7 +1021,7 @@ input, select, textarea {
 
 .message.user .msg-avatar {
   background-color: var(--border-medium);
-  color: #ffffff;
+  color: var(--text-title);
 }
 
 .message.assistant .msg-avatar {
@@ -973,7 +1039,7 @@ input, select, textarea {
 .msg-name {
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--color-secondary);
+  color: var(--text-muted);
 }
 
 .message.user .msg-name {
@@ -990,28 +1056,30 @@ input, select, textarea {
   border: 1px solid var(--border-medium);
   border-radius: 16px 4px 16px 16px;
   padding: 12px 18px;
-  background-color: transparent;
-  color: #ffffff;
+  background-color: var(--bg-surface);
+  color: var(--text-title);
+  box-shadow: var(--shadow-sm);
 }
 
 /* AI Message glass-panel styles */
 .message.assistant .msg-text {
-  background: rgba(20, 20, 23, 0.5);
+  background: var(--bg-glass-panel);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border-glass);
   border-radius: 4px 16px 16px 16px;
   padding: 16px 20px;
   box-shadow: var(--shadow-sm), var(--shadow-glow);
   border-bottom: 1px solid rgba(99, 102, 241, 0.12);
-  color: var(--color-secondary-dim);
+  color: var(--text-main);
+  transition: background var(--transition-normal), border var(--transition-normal);
 }
 
 /* Markdown styling inside messages */
 .msg-text h1, .msg-text h2, .msg-text h3 {
   margin: 18px 0 8px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-title);
   letter-spacing: -0.02em;
 }
 .msg-text h1 { font-size: 1.35rem; }
@@ -1033,7 +1101,7 @@ input, select, textarea {
   margin-bottom: 4px;
 }
 .msg-text strong {
-  color: #ffffff;
+  color: var(--text-title);
   font-weight: 600;
 }
 .msg-text em {
@@ -1060,20 +1128,20 @@ input, select, textarea {
   justify-content: space-between;
   align-items: center;
   padding: 6px 16px;
-  background-color: rgba(0, 0, 0, 0.25);
+  background-color: var(--bg-code-header);
   border-bottom: 1px solid var(--border-light);
   font-size: 0.78rem;
   font-family: var(--font-mono);
-  color: var(--color-secondary);
+  color: var(--text-muted);
 }
 
 .copy-code-btn {
   font-size: 0.75rem;
   padding: 2px 8px;
   border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: var(--bg-surface-high);
   border: 1px solid var(--border-light);
-  color: var(--color-secondary);
+  color: var(--text-muted);
   transition: all var(--transition-fast);
 }
 
@@ -1093,7 +1161,7 @@ input, select, textarea {
 .code-block-wrapper code {
   font-family: var(--font-mono);
   font-size: 0.88rem;
-  color: var(--color-secondary-dim);
+  color: var(--text-main);
   white-space: pre;
 }
 
@@ -1103,9 +1171,9 @@ input, select, textarea {
   font-size: 0.88rem;
   padding: 2px 6px;
   border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--bg-surface-low);
   border: 1px solid var(--border-light);
-  color: var(--color-primary-dim);
+  color: var(--color-primary);
 }
 
 /* Typing Indicators */
@@ -1119,7 +1187,7 @@ input, select, textarea {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: var(--color-secondary);
+  background-color: var(--text-muted);
   animation: typing-bounce 1.4s infinite ease-in-out both;
 }
 .typing-dot:nth-child(1) { animation-delay: -0.32s; }
@@ -1157,7 +1225,7 @@ input, select, textarea {
   border-radius: var(--radius-full);
   border: 1px solid var(--border-medium);
   background-color: var(--bg-input);
-  color: var(--color-secondary);
+  color: var(--text-muted);
   font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
@@ -1208,7 +1276,7 @@ input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   transition: all var(--transition-fast);
   cursor: pointer;
   flex-shrink: 0;
@@ -1219,6 +1287,10 @@ input, select, textarea {
   background-color: rgba(255, 255, 255, 0.03);
   color: var(--color-primary-dim);
   border-color: var(--border-light);
+}
+
+[data-theme="light"] .input-icon-btn:hover {
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .input-icon-btn.recording {
@@ -1237,7 +1309,7 @@ input, select, textarea {
   flex: 1;
   padding: 10px 8px;
   background: transparent;
-  color: #ffffff;
+  color: var(--text-title);
   outline: none;
   border: none;
   resize: none;
@@ -1249,7 +1321,7 @@ input, select, textarea {
 }
 
 .input-container textarea::placeholder {
-  color: var(--color-secondary);
+  color: var(--text-muted);
   opacity: 0.7;
 }
 
@@ -1274,9 +1346,13 @@ input, select, textarea {
   transform: translateY(-1px);
 }
 
+[data-theme="light"] .send-action-btn:hover:not(:disabled) {
+  color: #ffffff;
+}
+
 .send-action-btn:disabled {
   background-color: var(--bg-surface-high);
-  color: var(--color-secondary);
+  color: var(--text-muted);
   opacity: 0.4;
   cursor: not-allowed;
   box-shadow: none;
@@ -1284,7 +1360,7 @@ input, select, textarea {
 
 .input-footer {
   font-size: 0.76rem;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   margin-top: 8px;
   text-align: center;
   opacity: 0.65;
@@ -1317,7 +1393,7 @@ input, select, textarea {
 }
 
 .pdf-remove-btn {
-  color: var(--color-secondary);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-fast);
   padding: 4px;
@@ -1348,6 +1424,8 @@ input, select, textarea {
 }
 
 .modal-content {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   width: 90%;
   max-width: 500px;
@@ -1356,6 +1434,7 @@ input, select, textarea {
   padding: 24px;
   box-shadow: var(--shadow-lg);
   animation: scale-up 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: background var(--transition-normal), border var(--transition-normal);
 }
 
 .arch-modal-content {
@@ -1385,12 +1464,12 @@ input, select, textarea {
 .modal-title h2 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-title);
   letter-spacing: -0.02em;
 }
 
 .modal-close {
-  color: var(--color-secondary);
+  color: var(--text-muted);
   transition: all var(--transition-fast);
   padding: 4px;
   border-radius: 6px;
@@ -1400,8 +1479,12 @@ input, select, textarea {
 }
 
 .modal-close:hover {
-  color: #ffffff;
+  color: var(--text-title);
   background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .modal-close:hover {
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 /* System Architecture Diagram Modal Styles */
@@ -1412,7 +1495,7 @@ input, select, textarea {
   gap: 8px;
   margin-bottom: 24px;
   padding: 20px;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: var(--bg-surface-low);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-light);
 }
@@ -1451,18 +1534,18 @@ input, select, textarea {
 .arch-label {
   font-size: 0.88rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-title);
 }
 
 .arch-sub {
   font-size: 0.76rem;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   margin-top: 4px;
   line-height: 1.3;
 }
 
 .arch-arrow {
-  color: var(--color-secondary);
+  color: var(--text-muted);
   font-size: 0.95rem;
   font-weight: bold;
   opacity: 0.5;
@@ -1472,7 +1555,7 @@ input, select, textarea {
   font-size: 0.95rem;
   font-weight: 600;
   margin-bottom: 12px;
-  color: #ffffff;
+  color: var(--text-title);
 }
 
 .tech-tags {
@@ -1482,12 +1565,12 @@ input, select, textarea {
 }
 
 .tech-tag {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--bg-surface-low);
   border: 1px solid var(--border-light);
   padding: 4px 10px;
   border-radius: var(--radius-full);
   font-size: 0.78rem;
-  color: var(--color-secondary);
+  color: var(--text-muted);
 }
 
 /* Keyboard Shortcuts Modal List */
@@ -1502,11 +1585,11 @@ input, select, textarea {
   justify-content: space-between;
   align-items: center;
   font-size: 0.9rem;
-  color: var(--color-secondary-dim);
+  color: var(--text-main);
 }
 
 .shortcut-item kbd {
-  background-color: var(--bg-surface);
+  background-color: var(--bg-surface-high);
   border: 1px solid var(--border-medium);
   border-bottom-width: 2.5px;
   padding: 3px 8px;
@@ -1516,6 +1599,10 @@ input, select, textarea {
   color: var(--color-primary-dim);
   font-weight: 600;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .shortcut-item kbd {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 /* Telemetry Dashboard Graphs Modal Styles */
@@ -1536,7 +1623,7 @@ input, select, textarea {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 600;
-  color: var(--color-secondary);
+  color: var(--text-muted);
 }
 
 .chart-wrapper {
@@ -1550,6 +1637,10 @@ input, select, textarea {
   overflow: hidden;
 }
 
+[data-theme="light"] .chart-wrapper {
+  background-color: rgba(0, 0, 0, 0.015);
+}
+
 .chart-wrapper svg {
   width: 100%;
   height: 100%;
@@ -1557,7 +1648,7 @@ input, select, textarea {
 }
 
 .chart-grid-line {
-  stroke: rgba(255, 255, 255, 0.03);
+  stroke: var(--border-medium);
   stroke-width: 1;
   stroke-dasharray: 4, 4;
 }
@@ -1573,6 +1664,13 @@ input, select, textarea {
 .chart-line-speed {
   stroke: var(--color-warning);
   filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.3));
+}
+
+[data-theme="light"] .chart-line {
+  filter: none;
+}
+[data-theme="light"] .chart-line-speed {
+  filter: none;
 }
 
 .chart-area-fill {
@@ -1610,7 +1708,7 @@ input, select, textarea {
 }
 
 .stat-card {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--bg-surface-low);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: 12px;
@@ -1632,7 +1730,7 @@ input, select, textarea {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-secondary);
+  color: var(--text-muted);
   margin-top: 4px;
 }
 

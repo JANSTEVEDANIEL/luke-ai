@@ -1791,3 +1791,19 @@ input, select, textarea {
 .material-symbols-outlined.icon-fill {
   font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
 }
+
+/* User Profile & Auth Elements */
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}

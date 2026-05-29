@@ -99,6 +99,17 @@
             <span class="metric" id="metric-tokens">📊 -- tok/s</span>
           </div>
           
+          <!-- Auth Actions -->
+          <button class="header-icon-btn" id="login-btn" title="Sign In with Google" aria-label="Sign In">
+            <span class="material-symbols-outlined">login</span>
+          </button>
+          <div id="user-profile" class="user-profile" style="display:none">
+            <img id="user-avatar" class="user-avatar" src="" alt="Avatar">
+            <button class="header-icon-btn" id="logout-btn" title="Sign Out" aria-label="Sign Out">
+              <span class="material-symbols-outlined">logout</span>
+            </button>
+          </div>
+          
           <!-- Control Actions -->
           <button class="header-icon-btn" id="arch-toggle" title="System Architecture" aria-label="Open architecture diagram">
             <span class="material-symbols-outlined">schema</span>
@@ -433,6 +444,6 @@
   </script>
   
   <!-- Core script code -->
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>

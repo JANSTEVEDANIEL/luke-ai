@@ -1,3 +1,6 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 // ===== LUKE AI — Script =====
 // Developed by R Jan Steve Daniel
 // Powered by Groq LPU Inference
@@ -91,6 +94,63 @@ Rules:
   const analyticsClose = $('analytics-close');
   const previewModal = $('preview-modal');
   const previewClose = $('preview-close');
+
+  // Auth Elements
+  const loginBtn = $('login-btn');
+  const logoutBtn = $('logout-btn');
+  const userProfile = $('user-profile');
+  const userAvatar = $('user-avatar');
+
+  // ===== FIREBASE INIT & AUTH =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyBM0vmh73JghpWuUoXPkEqBC8I_-mvnHmg",
+    authDomain: "luke-ai-69270.firebaseapp.com",
+    projectId: "luke-ai-69270",
+    storageBucket: "luke-ai-69270.firebasestorage.app",
+    messagingSenderId: "154074977301",
+    appId: "1:154074977301:web:05f050e72aec89b00faa1c",
+    measurementId: "G-BZXB39SDVC"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  // Auth Listeners
+  if (loginBtn) {
+    loginBtn.addEventListener('click', async () => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error("Error signing in", error);
+      }
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error("Error signing out", error);
+      }
+    });
+  }
+
+  // Monitor Auth State
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // Logged in
+      loginBtn.style.display = 'none';
+      userProfile.style.display = 'flex';
+      userAvatar.src = user.photoURL || 'https://via.placeholder.com/32';
+      userAvatar.title = user.displayName;
+    } else {
+      // Logged out
+      loginBtn.style.display = 'flex';
+      userProfile.style.display = 'none';
+      userAvatar.src = '';
+    }
+  });
 
   // Tool Definitions
   const tools = [

@@ -27,6 +27,9 @@
   let uploadedFileText = '';
   let uploadedFileName = '';
 
+  // Telemetry History (last 30 requests)
+  let telemetryHistory = JSON.parse(localStorage.getItem('luke_telemetry_history')) || [];
+
   // ===== SYSTEM PROMPT =====
   const SYSTEM_PROMPT = `You are LUKE AI, a super fast, helpful AI assistant created, founded, and developed by R Jan Steve Daniel.
 
@@ -82,6 +85,12 @@ Rules:
   const archClose = $('arch-close');
   const shortcutsModal = $('shortcuts-modal');
   const shortcutsClose = $('shortcuts-close');
+
+  // MNC Upgrades Modals
+  const analyticsModal = $('analytics-modal');
+  const analyticsClose = $('analytics-close');
+  const previewModal = $('preview-modal');
+  const previewClose = $('preview-close');
 
   // Tool Definitions
   const tools = [
@@ -207,10 +216,28 @@ Rules:
       archModal.style.display = 'none';
     });
 
+    // Analytics Dashboard Modal trigger
+    responseMetrics.addEventListener('click', () => {
+      analyticsModal.style.display = 'flex';
+      renderTelemetryCharts();
+    });
+    analyticsClose.addEventListener('click', () => {
+      analyticsModal.style.display = 'none';
+    });
+
+    // Code Preview Modal close
+    previewClose.addEventListener('click', () => {
+      previewModal.style.display = 'none';
+      $('preview-iframe').srcdoc = '';
+    });
+
     // Close modals on clicking overlay
-    [archModal, shortcutsModal].forEach(modal => {
+    [archModal, shortcutsModal, analyticsModal, previewModal].forEach(modal => {
       modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
+        if (e.target === modal) {
+          modal.style.display = 'none';
+          if (modal === previewModal) $('preview-iframe').srcdoc = '';
+        }
       });
     });
 
@@ -226,40 +253,36 @@ Rules:
 
     // Global keyboard shortcuts
     window.addEventListener('keydown', (e) => {
-      // Ctrl+K -> Shortcuts Modal
       if (e.ctrlKey && e.key === 'k') {
         e.preventDefault();
         shortcutsModal.style.display = shortcutsModal.style.display === 'flex' ? 'none' : 'flex';
       }
-      // Ctrl+Shift+N -> New Thread
       if (e.ctrlKey && e.shiftKey && e.key === 'N') {
         e.preventDefault();
         createNewThread();
       }
-      // Ctrl+B -> Toggle Sidebar
       if (e.ctrlKey && e.key === 'b') {
         e.preventDefault();
         sidebar.classList.toggle('collapsed');
       }
-      // Ctrl+Shift+V -> Voice Input
       if (e.ctrlKey && e.shiftKey && e.key === 'V') {
         e.preventDefault();
         toggleVoice();
       }
-      // Ctrl+Shift+E -> Export Chat
       if (e.ctrlKey && e.shiftKey && e.key === 'E') {
         e.preventDefault();
         exportChat();
       }
-      // Ctrl+Shift+L -> Clear Chat
       if (e.ctrlKey && e.shiftKey && e.key === 'L') {
         e.preventDefault();
         clearChat();
       }
-      // Escape -> Close Modals
       if (e.key === 'Escape') {
         archModal.style.display = 'none';
         shortcutsModal.style.display = 'none';
+        analyticsModal.style.display = 'none';
+        previewModal.style.display = 'none';
+        $('preview-iframe').srcdoc = '';
         settingsPanel.classList.add('hidden');
       }
     });
@@ -340,16 +363,13 @@ Rules:
     currentThreadId = id;
     const thread = threads.find(t => t.id === id) || threads[0];
     
-    // Cancel active speech
     if (isSpeaking && synth) {
       try { synth.cancel(); } catch (e) {}
       isSpeaking = false;
     }
     
-    // Clear display
     messages.innerHTML = '';
     
-    // Load Thread PDF context
     if (thread.pdfText) {
       uploadedFileText = thread.pdfText;
       uploadedFileName = thread.pdfName;
@@ -361,7 +381,6 @@ Rules:
       userInput.placeholder = 'Message LUKE AI... (Ctrl+K for shortcuts)';
     }
 
-    // Render Messages or Welcome Screen
     if (thread.messages.length === 0) {
       welcomeScreen.style.display = 'flex';
       sendBtn.disabled = !uploadedFileText;
@@ -373,14 +392,10 @@ Rules:
       });
     }
 
-    // Update active highlight
     renderThreadList();
-    
-    // Reset stats & indicators
     responseMetrics.style.display = 'none';
     setStatus('ready', 'Ready');
     
-    // Close sidebar on mobile
     if (shouldCloseSidebarOnMobile && window.innerWidth <= 768) {
       sidebar.classList.add('collapsed');
     }
@@ -448,7 +463,6 @@ Rules:
         setTimeout(() => setStatus('ready', 'Ready'), 4000);
       }
     } else {
-      // TXT, MD, CSV, JSON
       const reader = new FileReader();
       reader.onload = function(evt) {
         uploadedFileText = evt.target.result;
@@ -500,6 +514,53 @@ Rules:
       welcomeScreen.style.display = 'flex';
       sendBtn.disabled = true;
     }
+  }
+
+  // ===== CLIENT-SIDE SEMANTIC CHUNKING (SMART RAG) =====
+  function getSemanticChunks(text, query) {
+    // Split into paragraphs
+    const paragraphs = text.split(/\n\s*\n|\n(?=[A-Z])/);
+    const chunks = [];
+    
+    let currentChunk = '';
+    for (let p of paragraphs) {
+      p = p.trim();
+      if (!p) continue;
+      // Build ~1200 char chunks with overlap
+      if ((currentChunk + ' ' + p).length < 1200) {
+        currentChunk += (currentChunk ? ' ' : '') + p;
+      } else {
+        if (currentChunk) chunks.push(currentChunk);
+        currentChunk = p;
+      }
+    }
+    if (currentChunk) chunks.push(currentChunk);
+    
+    // If text size is small, return all
+    if (chunks.length <= 3) return chunks;
+    
+    // Simple Term Matching TF similarity score
+    const terms = query.toLowerCase().split(/\W+/).filter(t => t.length > 2);
+    if (terms.length === 0) return chunks.slice(0, 3);
+    
+    const scoredChunks = chunks.map(chunk => {
+      const lowerChunk = chunk.toLowerCase();
+      let score = 0;
+      terms.forEach(term => {
+        const occurrences = (lowerChunk.split(term).length - 1);
+        score += occurrences * 10;
+        
+        // Exact word boundary bonus
+        const reg = new RegExp('\\b' + term + '\\b', 'g');
+        const exactMatches = (lowerChunk.match(reg) || []).length;
+        score += exactMatches * 20;
+      });
+      return { chunk, score };
+    });
+    
+    // Sort descending and return top 3
+    scoredChunks.sort((a, b) => b.score - a.score);
+    return scoredChunks.slice(0, 3).map(sc => sc.chunk);
   }
 
   // ===== THEME =====
@@ -576,6 +637,151 @@ Rules:
     }
   }
 
+  // ===== TELEMETRY CHART DRAWING =====
+  function renderTelemetryCharts() {
+    const latContainer = $('latency-chart');
+    const speedContainer = $('speed-chart');
+    if (!latContainer || !speedContainer) return;
+    
+    if (telemetryHistory.length === 0) {
+      latContainer.innerHTML = '<div style="color:var(--text-muted);font-size:11px;text-align:center;padding-top:40px;font-family:var(--font-mono)">No request telemetries logged.</div>';
+      speedContainer.innerHTML = '<div style="color:var(--text-muted);font-size:11px;text-align:center;padding-top:40px;font-family:var(--font-mono)">No request telemetries logged.</div>';
+      return;
+    }
+
+    const points = telemetryHistory;
+    const width = 500;
+    const height = 110;
+    const padding = 15;
+    
+    const getX = (idx) => padding + (idx / (Math.max(points.length - 1, 1))) * (width - padding * 2);
+    const getY = (val, max, min, range) => height - padding - ((val - min) / range) * (height - padding * 2);
+
+    // 1. Latency Chart
+    const maxLat = Math.max(...points.map(p => p.latency), 100);
+    const minLat = Math.min(...points.map(p => p.latency), 0);
+    const latRange = maxLat - minLat || 1;
+    
+    let latPath = '';
+    let latFill = `M ${padding} ${height - padding} `;
+    let latDots = '';
+    
+    points.forEach((p, idx) => {
+      const x = getX(idx);
+      const y = getY(p.latency, maxLat, minLat, latRange);
+      
+      if (idx === 0) {
+        latPath += `M ${x} ${y} `;
+      } else {
+        latPath += `L ${x} ${y} `;
+      }
+      latFill += `L ${x} ${y} `;
+      latDots += `<circle cx="${x}" cy="${y}" r="3.5" class="chart-dot" onmouseover="window.showChartTooltip(event, 'Latency: ${p.latency}ms (TTFT: ${p.ttft}ms)')" onmouseout="window.hideChartTooltip()"/>`;
+    });
+    latFill += `L ${getX(points.length - 1)} ${height - padding} Z`;
+    
+    latContainer.innerHTML = `
+      <svg viewBox="0 0 ${width} ${height}">
+        <defs>
+          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.0"/>
+          </linearGradient>
+        </defs>
+        <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" class="chart-grid-line"/>
+        <line x1="${padding}" y1="${height/2}" x2="${width - padding}" y2="${height/2}" class="chart-grid-line"/>
+        <line x1="${padding}" y1="${padding}" x2="${width - padding}" y2="${padding}" class="chart-grid-line"/>
+        <path d="${latFill}" class="chart-area-fill"/>
+        <path d="${latPath}" class="chart-line"/>
+        ${latDots}
+      </svg>
+    `;
+
+    // 2. Speed Chart
+    const maxSpeed = Math.max(...points.map(p => p.speed), 50);
+    const minSpeed = Math.min(...points.map(p => p.speed), 0);
+    const speedRange = maxSpeed - minSpeed || 1;
+    
+    let speedPath = '';
+    let speedFill = `M ${padding} ${height - padding} `;
+    let speedDots = '';
+    
+    points.forEach((p, idx) => {
+      const x = getX(idx);
+      const y = getY(p.speed, maxSpeed, minSpeed, speedRange);
+      
+      if (idx === 0) {
+        speedPath += `M ${x} ${y} `;
+      } else {
+        speedPath += `L ${x} ${y} `;
+      }
+      speedFill += `L ${x} ${y} `;
+      speedDots += `<circle cx="${x}" cy="${y}" r="3.5" class="chart-dot chart-dot-speed" onmouseover="window.showChartTooltip(event, 'Speed: ${p.speed} t/s')" onmouseout="window.hideChartTooltip()"/>`;
+    });
+    speedFill += `L ${getX(points.length - 1)} ${height - padding} Z`;
+    
+    speedContainer.innerHTML = `
+      <svg viewBox="0 0 ${width} ${height}">
+        <defs>
+          <linearGradient id="chartGradSpeed" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--warning)" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="var(--warning)" stop-opacity="0.0"/>
+          </linearGradient>
+        </defs>
+        <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" class="chart-grid-line"/>
+        <line x1="${padding}" y1="${height/2}" x2="${width - padding}" y2="${height/2}" class="chart-grid-line"/>
+        <line x1="${padding}" y1="${padding}" x2="${width - padding}" y2="${padding}" class="chart-grid-line"/>
+        <path d="${speedFill}" class="chart-area-fill-speed"/>
+        <path d="${speedPath}" class="chart-line chart-line-speed"/>
+        ${speedDots}
+      </svg>
+    `;
+
+    // Compute averages
+    const avgLatency = Math.round(points.reduce((a, b) => a + b.latency, 0) / points.length);
+    const avgTtft = Math.round(points.reduce((a, b) => a + (b.ttft || 0), 0) / points.length);
+    const avgSpeed = Math.round(points.reduce((a, b) => a + b.speed, 0) / points.length);
+    
+    $('stat-avg-latency').textContent = `${avgLatency}ms`;
+    $('stat-avg-ttft').textContent = `${avgTtft}ms`;
+    $('stat-avg-speed').textContent = `${avgSpeed} t/s`;
+  }
+
+  // Tooltip bindings
+  let chartTooltip = null;
+  window.showChartTooltip = function(e, text) {
+    if (!chartTooltip) {
+      chartTooltip = document.createElement('div');
+      chartTooltip.style.position = 'absolute';
+      chartTooltip.style.background = 'var(--bg-tertiary)';
+      chartTooltip.style.border = '1px solid var(--border)';
+      chartTooltip.style.borderRadius = 'var(--radius-sm)';
+      chartTooltip.style.padding = '4px 8px';
+      chartTooltip.style.fontSize = '10px';
+      chartTooltip.style.fontFamily = 'var(--font-mono)';
+      chartTooltip.style.color = 'var(--text-primary)';
+      chartTooltip.style.pointerEvents = 'none';
+      chartTooltip.style.zIndex = '2000';
+      document.body.appendChild(chartTooltip);
+    }
+    chartTooltip.textContent = text;
+    chartTooltip.style.display = 'block';
+    chartTooltip.style.left = (e.pageX + 12) + 'px';
+    chartTooltip.style.top = (e.pageY - 12) + 'px';
+  };
+  window.hideChartTooltip = function() {
+    if (chartTooltip) chartTooltip.style.display = 'none';
+  };
+
+  // Code runner binding
+  window.runCodeSnippet = function(btn) {
+    const code = btn.parentElement.parentElement.nextElementSibling.textContent;
+    const iframe = $('preview-iframe');
+    const modal = $('preview-modal');
+    modal.style.display = 'flex';
+    iframe.srcdoc = code;
+  };
+
   // ===== STREAMING GROQ API INTEGRATION =====
   async function queryGroqWithStreaming(userQuery, messageHistoryForAPI, onChunk, onMetrics, onToolStart, onToolEnd) {
     const body = {
@@ -634,9 +840,12 @@ Rules:
             if (data.usage) {
               const endTime = performance.now();
               const totalTime = endTime - startTime;
+              const totalLatency = Math.round(totalTime);
+              const ttftVal = Math.round(ttft);
+              
               onMetrics({
-                latency: Math.round(totalTime),
-                ttft: Math.round(ttft),
+                latency: totalLatency,
+                ttft: ttftVal,
                 completionTokens: data.usage.completion_tokens,
                 promptTokens: data.usage.prompt_tokens
               });
@@ -729,62 +938,57 @@ Rules:
     if (!text && !uploadedFileText) return;
     if (isProcessing) return;
 
-    // Reset input fields
     userInput.value = '';
     userInput.style.height = 'auto';
     sendBtn.disabled = true;
 
-    // Hide welcome, show messages
     welcomeScreen.style.display = 'none';
 
-    // Append User Message to UI
     const displayMessage = text || `Analyze attached file: ${uploadedFileName}`;
     appendMessage('user', displayMessage);
 
-    // Get current thread
     const thread = threads.find(t => t.id === currentThreadId);
     if (!thread) return;
 
-    // Push message to thread history
     thread.messages.push({ role: 'user', content: displayMessage });
 
-    // Set title on first message
     if (thread.title === 'New Chat' || thread.messages.length === 1) {
       const rawTitle = displayMessage.substring(0, 24);
       thread.title = rawTitle.length >= 24 ? rawTitle + '...' : rawTitle;
       saveThreadsToStorage();
     }
 
-    // Stop TTS
     if (isSpeaking && synth) {
       try { synth.cancel(); } catch (e) {}
       isSpeaking = false;
     }
 
-    // Unlock speech
     unlockSpeech();
 
     isProcessing = true;
     setStatus('thinking', 'Thinking...');
 
-    // Append AI bubble placeholder
     const aiMessageEl = appendMessage('assistant', '');
     const aiTextContainer = aiMessageEl.querySelector('.msg-text');
     
-    // Prepare API history
     const messageHistoryForAPI = [
       { role: 'system', content: SYSTEM_PROMPT }
     ];
 
-    // Add PDF text to api parameters if active
+    // MNC Upgrade: Semantic RAG chunk context retrieval
     if (thread.pdfText) {
+      const semanticChunks = getSemanticChunks(thread.pdfText, displayMessage);
+      const contextStr = semanticChunks.join('\n\n---\n\n');
+      
       messageHistoryForAPI.push({
         role: 'system',
-        content: `You have access to an uploaded document named "${thread.pdfName}". Use its contents to answer any related questions. Truncate quotes to match user questions. Here is the document content:\n\n${thread.pdfText.substring(0, 15000)}`
+        content: `You have access to relevant sections of an uploaded document named "${thread.pdfName}". Use the context below to answer the user's question. If the answer cannot be found in the context, use your knowledge base but mention that the document did not contain the details.
+        
+        Relevant Context Chunk(s):
+        ${contextStr}`
       });
     }
 
-    // Truncate message history for tokens space
     const recentMessages = thread.messages.slice(-12);
     recentMessages.forEach(m => {
       if (m.role === 'user' || m.role === 'assistant') {
@@ -795,7 +999,6 @@ Rules:
     try {
       responseMetrics.style.display = 'none';
 
-      // Start stream
       const replyText = await queryGroqWithStreaming(
         displayMessage,
         messageHistoryForAPI,
@@ -806,28 +1009,34 @@ Rules:
         (metrics) => {
           // Render Metrics in Header
           metricLatency.innerHTML = `⚡ ${metrics.latency}ms <span style="opacity:0.6;font-size:9px;margin-left:4px">TTFT: ${metrics.ttft}ms</span>`;
-          const tokPerSec = (metrics.completionTokens / (metrics.latency / 1000)).toFixed(0);
+          const tokPerSec = Math.round(metrics.completionTokens / (metrics.latency / 1000)) || 0;
           metricTokens.textContent = `📊 ${metrics.completionTokens} tok (${tokPerSec} t/s)`;
           responseMetrics.style.display = 'flex';
+
+          // Save to Telemetry
+          telemetryHistory.push({
+            timestamp: Date.now(),
+            latency: metrics.latency,
+            ttft: metrics.ttft,
+            completionTokens: metrics.completionTokens,
+            speed: tokPerSec
+          });
+          if (telemetryHistory.length > 30) telemetryHistory.shift();
+          localStorage.setItem('luke_telemetry_history', JSON.stringify(telemetryHistory));
         },
         (toolsExecuting) => {
-          // Tool start callback
           const names = toolsExecuting.map(t => t.name).join(', ');
           setStatus('thinking', `Running: ${names}...`);
           aiTextContainer.innerHTML = `<span style="color:var(--accent); font-family:var(--font-mono); font-size:13px">🤖 Invoking agent tools: [${names}]...</span>`;
         },
         () => {
-          // Tool complete callback
           setStatus('thinking', 'Processing tool results...');
           aiTextContainer.innerHTML = `<span style="color:var(--success); font-family:var(--font-mono); font-size:13px">✓ Executed tools. Synthesizing answer...</span>`;
         }
       );
 
-      // Save Assistant response
       thread.messages.push({ role: 'assistant', content: replyText });
       saveThreadsToStorage();
-      
-      // Auto speak
       speak(replyText);
 
     } catch (err) {
@@ -889,21 +1098,29 @@ Rules:
   function formatText(text) {
     let formatted = text;
     
-    // Check for open code blocks in SSE streams and close them temporarily
     const codeBlockCount = (formatted.match(/```/g) || []).length;
     if (codeBlockCount % 2 !== 0) {
       formatted += '\n```';
     }
 
-    // Code blocks
+    // Code blocks with integrated previewer
     formatted = formatted.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
       const escaped = escapeHtml(code.trim());
       const displayLang = lang || 'code';
+      
+      const isExecutable = ['html', 'css', 'js', 'javascript', 'svg'].includes(displayLang.toLowerCase());
+      const runBtnHtml = isExecutable 
+        ? `<button class="copy-code-btn" style="margin-right:6px;" onclick="window.runCodeSnippet(this)">Preview</button>`
+        : '';
+
       return `
         <div class="code-block-wrapper">
           <div class="code-block-header">
             <span>${displayLang}</span>
-            <button class="copy-code-btn" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000)">Copy</button>
+            <div style="display:flex;">
+              ${runBtnHtml}
+              <button class="copy-code-btn" onclick="navigator.clipboard.writeText(this.parentElement.parentElement.nextElementSibling.textContent); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000)">Copy</button>
+            </div>
           </div>
           <pre><code>${escaped}</code></pre>
         </div>
@@ -923,7 +1140,7 @@ Rules:
     // Horizontal rule
     formatted = formatted.replace(/^---$/gim, '<hr>');
 
-    // Line breaks (preserving layout inside pre elements)
+    // Line breaks
     const parts = formatted.split(/(<div class="code-block-wrapper">[\s\S]*?<\/div>)/g);
     for (let i = 0; i < parts.length; i++) {
       if (!parts[i].startsWith('<div class="code-block-wrapper">')) {
@@ -964,7 +1181,6 @@ Rules:
         const voices = synth.getVoices();
         if (voices.length === 0) return;
 
-        // Preferred English voices
         const preferred = [
           'Google UK English Male',
           'Daniel',
@@ -1002,7 +1218,6 @@ Rules:
     try {
       synth.cancel();
 
-      // Strip markdown elements for voice narration
       const plain = text
         .replace(/```[\s\S]*?```/g, 'code block omitted')
         .replace(/`[^`]+`/g, '')
@@ -1107,7 +1322,6 @@ Rules:
       saveThreadsToStorage();
     }
     
-    // Reset view
     messages.innerHTML = '';
     welcomeScreen.style.display = 'flex';
     pdfBanner.style.display = 'none';

@@ -3,98 +3,131 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LUKE AI — Intelligent Assistant by R Jan Steve Daniel</title>
-  <meta name="description" content="LUKE AI is a production-grade AI assistant with streaming responses, web search, PDF chat, and voice I/O. Built by R Jan Steve Daniel.">
+  <title>LUKE AI — Active Intelligence by R Jan Steve Daniel</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="LUKE AI is a premium, MNC-grade AI assistant with streaming responses, web search, PDF chat, and voice I/O. Developed by R Jan Steve Daniel.">
   <meta name="keywords" content="AI assistant, chatbot, Groq, LLM, voice assistant, RAG, web search, PDF chat, R Jan Steve Daniel">
   <meta name="author" content="R Jan Steve Daniel">
-  <meta property="og:title" content="LUKE AI — Intelligent Assistant">
-  <meta property="og:description" content="A production-grade AI assistant with real-time web search, PDF intelligence, streaming inference, and voice capabilities.">
+  <meta property="og:title" content="LUKE AI — Active Intelligence">
+  <meta property="og:description" content="A production-grade AI assistant with real-time web search, PDF intelligence, streaming inference, and performance telemetry.">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
+  
+  <!-- Icons & Fonts -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  
+  <!-- Design System CSS -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div id="app">
-    <!-- SIDEBAR -->
+    <!-- DESKTOP SIDEBAR -->
     <aside id="sidebar" class="sidebar">
+      <!-- Sidebar Header Branding -->
       <div class="sidebar-header">
-        <button id="new-chat-btn" class="sidebar-new-btn" title="New chat (Ctrl+Shift+N)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <div class="sidebar-brand">
+          <div class="brand-avatar">
+            <span class="material-symbols-outlined icon-fill">smart_toy</span>
+          </div>
+          <div class="brand-text">
+            <h1>Luke AI</h1>
+            <p>Active Intelligence</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Primary Action CTA -->
+      <div class="sidebar-action">
+        <button id="new-chat-btn" class="btn-new-chat" title="New chat (Ctrl+Shift+N)">
+          <span class="material-symbols-outlined">add</span>
           <span>New Chat</span>
         </button>
       </div>
-      <div id="thread-list" class="thread-list"></div>
+      
+      <!-- Scrollable Conversation History -->
+      <div id="thread-list" class="thread-list">
+        <!-- Thread items are dynamically generated here -->
+      </div>
+      
+      <!-- Sidebar Footers -->
       <div class="sidebar-footer">
-        <div class="sidebar-stats" id="sidebar-stats">0 conversations</div>
+        <div class="sidebar-footer-links">
+          <button id="clear-chat" class="footer-action-btn" title="Clear current chat (Ctrl+Shift+L)">
+            <span class="material-symbols-outlined">delete_sweep</span>
+            <span>Clear Chat</span>
+          </button>
+          <button id="export-chat" class="footer-action-btn" title="Export conversation to Markdown (Ctrl+Shift+E)">
+            <span class="material-symbols-outlined">download</span>
+            <span>Export Chat</span>
+          </button>
+        </div>
+        <div class="sidebar-meta">
+          <div id="sidebar-stats" class="sidebar-stats">0 conversations</div>
+          <div class="creator-tag">by R Jan Steve Daniel</div>
+        </div>
       </div>
     </aside>
 
     <!-- MAIN PANEL -->
     <div id="main-panel" class="main-panel">
       <!-- HEADER -->
-      <header id="header">
+      <header id="header" class="glass-panel">
         <div class="header-left">
-          <button class="icon-btn" id="sidebar-toggle" title="Toggle sidebar (Ctrl+B)" aria-label="Toggle sidebar">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          <button class="header-icon-btn" id="sidebar-toggle" title="Toggle sidebar (Ctrl+B)" aria-label="Toggle sidebar">
+            <span class="material-symbols-outlined">menu</span>
           </button>
-          <div class="logo-mark">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <circle cx="14" cy="14" r="13" stroke="url(#logoGrad)" stroke-width="2"/>
-              <circle cx="14" cy="14" r="6" fill="url(#logoGrad)"/>
-              <defs>
-                <linearGradient id="logoGrad" x1="0" y1="0" x2="28" y2="28">
-                  <stop stop-color="#6C63FF"/>
-                  <stop offset="1" stop-color="#3B82F6"/>
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-          <div class="logo-text">
-            <span class="logo-name">LUKE AI</span>
-            <span class="logo-tag">by R Jan Steve Daniel</span>
+          <div class="header-brand-mobile md:hidden">
+            <span class="material-symbols-outlined icon-fill">smart_toy</span>
+            <h2>Luke AI</h2>
           </div>
         </div>
+        
         <div class="header-center">
           <div class="status-badge" id="status-badge">
             <span class="status-dot"></span>
             <span class="status-label" id="status-label">Ready</span>
           </div>
         </div>
+        
         <div class="header-right">
-          <div class="response-metrics" id="response-metrics" style="display:none">
-            <span class="metric" id="metric-latency" title="Response latency">⚡ --ms</span>
-            <span class="metric" id="metric-tokens" title="Tokens generated">📊 -- tok</span>
+          <!-- Live Telemetry Badges -->
+          <div class="response-metrics" id="response-metrics" style="display:none" title="Click to view interactive performance charts">
+            <span class="metric" id="metric-latency">⚡ --ms</span>
+            <span class="metric" id="metric-tokens">📊 -- tok/s</span>
           </div>
-          <button class="icon-btn" id="arch-toggle" title="System Architecture" aria-label="Open architecture modal">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          
+          <!-- Control Actions -->
+          <button class="header-icon-btn" id="arch-toggle" title="System Architecture" aria-label="Open architecture diagram">
+            <span class="material-symbols-outlined">schema</span>
           </button>
-          <button class="icon-btn" id="theme-toggle" title="Toggle theme" aria-label="Toggle dark/light theme">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <button class="header-icon-btn" id="theme-toggle" title="Toggle Dark/Light Theme" aria-label="Toggle theme">
+            <span class="material-symbols-outlined">contrast</span>
           </button>
-          <button class="icon-btn" id="settings-toggle" title="Settings" aria-label="Open settings">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <button class="header-icon-btn" id="settings-toggle" title="Model & System Settings" aria-label="Toggle settings panel">
+            <span class="material-symbols-outlined">settings</span>
           </button>
         </div>
       </header>
 
-      <!-- SETTINGS PANEL -->
-      <div id="settings-panel" class="settings-panel hidden">
+      <!-- COLLAPSIBLE SETTINGS PANEL -->
+      <div id="settings-panel" class="settings-panel hidden glass-panel">
         <div class="settings-inner">
           <div class="settings-group">
-            <label class="settings-label" for="model-select">Model</label>
+            <label class="settings-label" for="model-select">Active LPU Model</label>
             <select id="model-select" class="settings-select">
-              <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Best)</option>
-              <option value="llama-3.1-8b-instant" selected>Llama 3.1 8B (Fastest)</option>
-              <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
-              <option value="gemma2-9b-it">Gemma 2 9B</option>
+              <option value="llama-3.3-70b-versatile">Llama 3.3 70B (High Intelligence)</option>
+              <option value="llama-3.1-8b-instant" selected>Llama 3.1 8B (Fast Stream LPU)</option>
+              <option value="mixtral-8x7b-32768">Mixtral 8x7B (Deep Context)</option>
+              <option value="gemma2-9b-it">Gemma 2 9B (Google Instruct)</option>
             </select>
           </div>
           <div class="settings-group">
-            <label class="settings-label">Web Search</label>
+            <label class="settings-label">Agentic Web Search</label>
             <div class="toggle-row">
-              <span class="toggle-label-text">Enable real-time web search</span>
+              <span class="toggle-label-text">Enable real-time search tool</span>
               <label class="toggle-switch">
                 <input type="checkbox" id="web-search-toggle" checked>
                 <span class="toggle-slider"></span>
@@ -102,9 +135,9 @@
             </div>
           </div>
           <div class="settings-group">
-            <label class="settings-label">Voice Response</label>
+            <label class="settings-label">Text-to-Speech (TTS)</label>
             <div class="toggle-row">
-              <span class="toggle-label-text">Speak answers aloud</span>
+              <span class="toggle-label-text">Speak response chunks</span>
               <label class="toggle-switch">
                 <input type="checkbox" id="auto-speak">
                 <span class="toggle-slider"></span>
@@ -112,190 +145,294 @@
             </div>
           </div>
           <div class="settings-group">
-            <label class="settings-label">Voice Speed</label>
-            <input type="range" id="voice-speed" min="0.5" max="2" step="0.1" value="1" class="settings-range">
-            <span class="range-val" id="speed-val">1.0x</span>
+            <label class="settings-label">Voice Reading Speed</label>
+            <div class="range-row">
+              <input type="range" id="voice-speed" min="0.5" max="2" step="0.1" value="1" class="settings-range">
+              <span class="range-val" id="speed-val">1.0x</span>
+            </div>
           </div>
+        </div>
+        <div class="settings-warning">
+          <span class="material-symbols-outlined text-[14px]">info</span>
+          <span>Using developer default API key (gsk_***). Do not share critical credentials.</span>
         </div>
       </div>
 
-      <!-- CHAT AREA -->
+      <!-- CHAT WORKSPACE AREA -->
       <main id="chat-area">
+        <!-- Premium Welcome Bento Dashboard -->
         <div id="welcome-screen">
-          <div class="welcome-icon">
-            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-              <circle cx="28" cy="28" r="27" stroke="url(#wGrad)" stroke-width="2" opacity="0.5"/>
-              <circle cx="28" cy="28" r="18" stroke="url(#wGrad)" stroke-width="1.5" opacity="0.3"/>
-              <circle cx="28" cy="28" r="10" fill="url(#wGrad)" opacity="0.8"/>
-              <defs>
-                <linearGradient id="wGrad" x1="0" y1="0" x2="56" y2="56">
-                  <stop stop-color="#6C63FF"/>
-                  <stop offset="1" stop-color="#3B82F6"/>
-                </linearGradient>
-              </defs>
-            </svg>
+          <div class="welcome-hero animate-pulse-slow">
+            <div class="welcome-avatar">
+              <span class="material-symbols-outlined">flare</span>
+            </div>
+            <h2 class="welcome-title">Good morning, Developer.</h2>
+            <p class="welcome-subtitle">What shall we build today? Your cognitive workspace is ready.</p>
           </div>
-          <h1 class="welcome-title">Hello, I'm <span class="gradient-text">LUKE AI</span></h1>
-          <p class="welcome-sub">Your production-grade AI assistant with real-time web search, PDF intelligence, streaming responses & voice I/O.</p>
-          <div class="welcome-chips">
-            <button class="chip" data-prompt="Search the web for latest AI news today">🔍 Live AI news</button>
-            <button class="chip" data-prompt="Write a Python function to reverse a string">🐍 Python help</button>
-            <button class="chip" data-prompt="What is the current date and time?">🕐 Current time</button>
-            <button class="chip" data-prompt="Who created you?">👤 Who made you?</button>
-            <button class="chip" data-prompt="Explain RAG architecture in AI">🧠 Explain RAG</button>
-            <button class="chip" data-prompt="Compare React vs Vue for frontend development">⚡ React vs Vue</button>
+          
+          <!-- Bento Grid Suggested Starters -->
+          <div class="welcome-bento-grid">
+            <!-- Card 1: Generate Code -->
+            <button class="bento-card" data-prompt="Write a Python script using fetch to monitor crypto prices and explain it.">
+              <div class="bento-icon">
+                <span class="material-symbols-outlined">code_blocks</span>
+              </div>
+              <h3>Generate Scripts</h3>
+              <p>Draft a Python web scraper or API crawler with complete error handling.</p>
+            </button>
+            
+            <!-- Card 2: PDF Analysis -->
+            <button class="bento-card" data-prompt="Analyze the attached document and summarize its 3 main key takeaways.">
+              <div class="bento-icon">
+                <span class="material-symbols-outlined">data_exploration</span>
+              </div>
+              <h3>Scan Documents</h3>
+              <p>Upload files or PDF transcripts to run client-side semantic RAG search.</p>
+            </button>
+            
+            <!-- Card 3: Architecture -->
+            <button class="bento-card span-two" data-prompt="Explain RAG (Retrieval-Augmented Generation) system architecture and draw a flowchart.">
+              <div class="bento-icon-row">
+                <div class="icon-box">
+                  <span class="material-symbols-outlined">schema</span>
+                </div>
+                <h3>Explain RAG Infrastructure</h3>
+              </div>
+              <p>Deconstruct vector embeddings, database queries, and prompt engineering flows in enterprise setups.</p>
+            </button>
           </div>
-          <div class="welcome-features">
-            <div class="feature-badge">🔍 Web Search</div>
-            <div class="feature-badge">📄 PDF Chat</div>
-            <div class="feature-badge">⚡ Streaming</div>
-            <div class="feature-badge">🎙️ Voice I/O</div>
-            <div class="feature-badge">💾 Memory</div>
-            <div class="feature-badge">📊 Metrics</div>
+
+          <!-- Creator Footer Info -->
+          <div class="welcome-footer-info">
+            <span>Developed by <strong>R Jan Steve Daniel</strong></span>
+            <span class="separator">·</span>
+            <span>Powered by Groq LPUs</span>
+            <span class="separator">·</span>
+            <span>Press <kbd>Ctrl+K</kbd> for Keyboard Hotkeys</span>
           </div>
-          <p class="welcome-footer">Developed by <strong>R Jan Steve Daniel</strong> · Powered by Groq LPU · <kbd>Ctrl+K</kbd> shortcuts</p>
         </div>
 
+        <!-- Render conversation message bubbles -->
         <div id="messages"></div>
       </main>
 
-      <!-- SUGGESTION CHIPS -->
+      <!-- AUTO-SUGGESTIONS CHIPS -->
       <div id="suggestion-bar" class="suggestion-bar" style="display:none">
         <div class="suggestion-inner" id="suggestions"></div>
       </div>
 
-      <!-- INPUT BAR -->
+      <!-- COMMAND INPUT CONTEXT PANEL -->
       <div id="input-bar">
+        <!-- PDF Attachment Notification Banner -->
         <div id="pdf-banner" class="pdf-banner" style="display:none">
-          <span id="pdf-name">📄 document.pdf</span>
-          <button id="pdf-remove" class="pdf-remove-btn" title="Remove PDF">✕</button>
-        </div>
-        <div class="input-container">
-          <button id="voice-btn" class="input-icon-btn" title="Voice input (Ctrl+Shift+V)" aria-label="Start voice input">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="2" width="6" height="11" rx="3"/>
-              <path d="M19 10a7 7 0 0 1-14 0"/>
-              <line x1="12" y1="19" x2="12" y2="23"/>
-              <line x1="8" y1="23" x2="16" y2="23"/>
-            </svg>
+          <div class="pdf-banner-content">
+            <span class="material-symbols-outlined text-[16px]">description</span>
+            <span id="pdf-name">document.pdf</span>
+          </div>
+          <button id="pdf-remove" class="pdf-remove-btn" title="Remove attached document">
+            <span class="material-symbols-outlined text-[16px]">close</span>
           </button>
-          <label id="pdf-upload-label" class="input-icon-btn" title="Upload PDF to chat" aria-label="Upload PDF">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="12" y1="18" x2="12" y2="12"/>
-              <polyline points="9 15 12 12 15 15"/>
-            </svg>
+        </div>
+        
+        <!-- Command Floating Glass Pill Container -->
+        <div class="input-container glass-pill">
+          <!-- Voice Record -->
+          <button id="voice-btn" class="input-icon-btn" title="Voice Input STT (Ctrl+Shift+V)" aria-label="Voice input">
+            <span class="material-symbols-outlined">mic</span>
+          </button>
+          
+          <!-- PDF / File Upload Label Trigger -->
+          <label id="pdf-upload-label" class="input-icon-btn" title="Upload Document PDF/Text to Chat" aria-label="Upload PDF">
+            <span class="material-symbols-outlined">attach_file</span>
             <input type="file" id="pdf-input" accept=".pdf,.txt,.md,.csv,.json" style="display:none">
           </label>
-          <textarea id="user-input" placeholder="Message LUKE AI... (Ctrl+K for shortcuts)" rows="1" autocomplete="off"></textarea>
-          <button id="send-btn" class="input-icon-btn send" title="Send message (Enter)" aria-label="Send message" disabled>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="22" y1="2" x2="11" y2="13"/>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
+          
+          <!-- Textarea (Auto-resizes client-side) -->
+          <textarea id="user-input" placeholder="Message Luke AI... (Ctrl+K for hotkeys)" rows="1" autocomplete="off"></textarea>
+          
+          <!-- Send Action Button -->
+          <button id="send-btn" class="send-action-btn" title="Send message (Enter)" aria-label="Send message" disabled>
+            <span class="material-symbols-outlined icon-fill">arrow_upward</span>
           </button>
         </div>
-        <p class="input-footer">LUKE AI can make mistakes. Verify important info. · <button id="clear-chat" class="link-btn">Clear chat</button> · <button id="export-chat" class="link-btn">Export chat</button></p>
+        
+        <!-- Input Footer Disclaimer -->
+        <p class="input-footer">
+          Luke AI may produce inaccurate information about people, places, or facts.
+        </p>
       </div>
     </div>
   </div>
 
-  <!-- ARCHITECTURE MODAL -->
+  <!-- MODAL: SYSTEM ARCHITECTURE FLOW -->
   <div id="arch-modal" class="modal-overlay" style="display:none">
-    <div class="modal-content arch-modal-content">
+    <div class="modal-content arch-modal-content glass-panel">
       <div class="modal-header">
-        <h2>⚙️ System Architecture</h2>
-        <button id="arch-close" class="modal-close">✕</button>
+        <div class="modal-title">
+          <span class="material-symbols-outlined text-[20px] text-primary">schema</span>
+          <h2>System Architecture</h2>
+        </div>
+        <button id="arch-close" class="modal-close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
       </div>
+      
+      <!-- Interactive Diagram Flow -->
       <div class="arch-diagram">
         <div class="arch-row">
           <div class="arch-box arch-user">
             <div class="arch-icon">👤</div>
-            <div class="arch-label">User</div>
-            <div class="arch-sub">Voice / Text / PDF</div>
+            <div class="arch-label">User Entrypoint</div>
+            <div class="arch-sub">Voice STT / Message / PDF</div>
           </div>
         </div>
         <div class="arch-arrow">▼</div>
         <div class="arch-row">
           <div class="arch-box arch-frontend">
             <div class="arch-icon">🖥️</div>
-            <div class="arch-label">Frontend</div>
-            <div class="arch-sub">HTML/CSS/JS · Streaming UI · Voice I/O · PDF Parser</div>
+            <div class="arch-label">Local Frontend Engine</div>
+            <div class="arch-sub">HTML5 · Vanilla JS · SSE Stream Parser · PDF.js text-chunker</div>
           </div>
         </div>
         <div class="arch-arrow">▼</div>
         <div class="arch-row arch-row-multi">
           <div class="arch-box arch-api">
             <div class="arch-icon">🧠</div>
-            <div class="arch-label">Groq LPU</div>
-            <div class="arch-sub">Llama 3.3 70B · Streaming · Tool Calling</div>
+            <div class="arch-label">Groq LPU Inference</div>
+            <div class="arch-sub">Llama 3.3 70B stream · JSON Tool Calling</div>
           </div>
           <div class="arch-box arch-tools">
             <div class="arch-icon">🔧</div>
-            <div class="arch-label">AI Tools</div>
-            <div class="arch-sub">Web Search · Calculator · DateTime · Wikipedia</div>
+            <div class="arch-label">CORS-Free Tools</div>
+            <div class="arch-sub">Wikipedia Live Search · DateTime</div>
           </div>
         </div>
         <div class="arch-arrow">▼</div>
         <div class="arch-row arch-row-multi">
           <div class="arch-box arch-memory">
             <div class="arch-icon">💾</div>
-            <div class="arch-label">Memory</div>
-            <div class="arch-sub">localStorage · Conversation Threads · Persistence</div>
+            <div class="arch-label">Storage Cache</div>
+            <div class="arch-sub">localStorage persistent threads</div>
           </div>
           <div class="arch-box arch-voice">
             <div class="arch-icon">🎙️</div>
-            <div class="arch-label">Voice Pipeline</div>
-            <div class="arch-sub">Web Speech API · STT + TTS</div>
+            <div class="arch-label">Speech Pipeline</div>
+            <div class="arch-sub">Web Speech API STT/TTS</div>
           </div>
         </div>
       </div>
+      
+      <!-- Tech Stack Badges -->
       <div class="arch-tech-list">
-        <h3>Tech Stack</h3>
+        <h3>Integrated Technologies</h3>
         <div class="tech-tags">
           <span class="tech-tag">Vanilla JS</span>
-          <span class="tech-tag">Groq API</span>
-          <span class="tech-tag">Streaming SSE</span>
-          <span class="tech-tag">Tool Calling</span>
+          <span class="tech-tag">Groq Stream API</span>
+          <span class="tech-tag">SSE Streaming</span>
+          <span class="tech-tag">JSON Tool Call</span>
           <span class="tech-tag">Web Speech API</span>
           <span class="tech-tag">localStorage</span>
           <span class="tech-tag">PDF.js</span>
           <span class="tech-tag">Wikipedia API</span>
-          <span class="tech-tag">GitHub Pages</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- KEYBOARD SHORTCUTS MODAL -->
+  <!-- MODAL: KEYBOARD SHORTCUTS list -->
   <div id="shortcuts-modal" class="modal-overlay" style="display:none">
-    <div class="modal-content">
+    <div class="modal-content glass-panel">
       <div class="modal-header">
-        <h2>⌨️ Keyboard Shortcuts</h2>
-        <button id="shortcuts-close" class="modal-close">✕</button>
+        <div class="modal-title">
+          <span class="material-symbols-outlined text-[20px] text-primary">keyboard</span>
+          <h2>Keyboard Shortcuts</h2>
+        </div>
+        <button id="shortcuts-close" class="modal-close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
       </div>
       <div class="shortcuts-list">
-        <div class="shortcut-item"><kbd>Enter</kbd><span>Send message</span></div>
-        <div class="shortcut-item"><kbd>Shift+Enter</kbd><span>New line</span></div>
-        <div class="shortcut-item"><kbd>Ctrl+K</kbd><span>Show shortcuts</span></div>
-        <div class="shortcut-item"><kbd>Ctrl+Shift+N</kbd><span>New chat</span></div>
-        <div class="shortcut-item"><kbd>Ctrl+B</kbd><span>Toggle sidebar</span></div>
-        <div class="shortcut-item"><kbd>Ctrl+Shift+V</kbd><span>Voice input</span></div>
-        <div class="shortcut-item"><kbd>Ctrl+Shift+E</kbd><span>Export chat</span></div>
-        <div class="shortcut-item"><kbd>Ctrl+Shift+L</kbd><span>Clear chat</span></div>
-        <div class="shortcut-item"><kbd>Escape</kbd><span>Close modal/panel</span></div>
+        <div class="shortcut-item"><kbd>Enter</kbd><span>Send query to LLM</span></div>
+        <div class="shortcut-item"><kbd>Shift+Enter</kbd><span>Insert a newline block</span></div>
+        <div class="shortcut-item"><kbd>Ctrl+K</kbd><span>Toggle this shortcut list</span></div>
+        <div class="shortcut-item"><kbd>Ctrl+Shift+N</kbd><span>Create new conversation thread</span></div>
+        <div class="shortcut-item"><kbd>Ctrl+B</kbd><span>Toggle left history sidebar</span></div>
+        <div class="shortcut-item"><kbd>Ctrl+Shift+V</kbd><span>Trigger mic voice input STT</span></div>
+        <div class="shortcut-item"><kbd>Ctrl+Shift+E</kbd><span>Export chat thread to markdown</span></div>
+        <div class="shortcut-item"><kbd>Ctrl+Shift+L</kbd><span>Reset / Clear current chat messages</span></div>
+        <div class="shortcut-item"><kbd>Escape</kbd><span>Dismiss active settings/modal layers</span></div>
       </div>
     </div>
   </div>
 
-  <!-- PDF.js CDN for text extraction -->
+  <!-- MODAL: TELEMETRY PERFORMANCE DASHBOARD -->
+  <div id="analytics-modal" class="modal-overlay" style="display:none">
+    <div class="modal-content arch-modal-content glass-panel">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="material-symbols-outlined text-[20px] text-primary">monitoring</span>
+          <h2>Performance & Telemetry Dashboard</h2>
+        </div>
+        <button id="analytics-close" class="modal-close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="analytics-charts">
+        <div class="chart-container">
+          <h3 class="chart-title">Latency Over Time (ms)</h3>
+          <div class="chart-wrapper" id="latency-chart"></div>
+        </div>
+        <div class="chart-container">
+          <h3 class="chart-title">Inference Speed (tokens/sec)</h3>
+          <div class="chart-wrapper" id="speed-chart"></div>
+        </div>
+      </div>
+      
+      <!-- Summary stats grid -->
+      <div class="analytics-stats-grid">
+        <div class="stat-card">
+          <span class="stat-val" id="stat-avg-latency">--ms</span>
+          <span class="stat-lbl">Avg Latency</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-val" id="stat-avg-ttft">--ms</span>
+          <span class="stat-lbl">Avg TTFT</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-val" id="stat-avg-speed">-- t/s</span>
+          <span class="stat-lbl">Avg Speed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SANDBOXED CODE PREVIEW -->
+  <div id="preview-modal" class="modal-overlay" style="display:none">
+    <div class="modal-content preview-modal-content glass-panel">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="material-symbols-outlined text-[20px] text-primary">laptop_mac</span>
+          <h2>Sandboxed Output Preview</h2>
+        </div>
+        <button id="preview-close" class="modal-close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="preview-body">
+        <iframe id="preview-iframe" sandbox="allow-scripts" title="Preview sandboxed render pane"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- External PDF.js script stack for local parsing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     if (window.pdfjsLib) {
       window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
   </script>
+  
+  <!-- Core script code -->
   <script src="script.js"></script>
 </body>
 </html>

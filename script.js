@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // ===== LUKE AI — Script =====
 // Developed by R Jan Steve Daniel
@@ -125,8 +126,24 @@ Rules:
     measurementId: "G-BZXB39SDVC"
   };
   const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
+
+  // Handle return from Google redirect sign-in
+  // This runs once on page load and processes the result if user just signed in
+  getRedirectResult(auth).then((result) => {
+    if (result && result.user) {
+      // User just came back from Google sign-in — onAuthStateChanged will also fire
+      console.log('Redirect sign-in success:', result.user.displayName);
+    }
+  }).catch((error) => {
+    console.error('Redirect result error:', error.code, error.message);
+    if (error.code !== 'auth/no-current-user') {
+      alert('Sign-in error: ' + error.message);
+    }
+  });
+
 
   // ===== LANDING PAGE LOGIC =====
   function showLanding() {
@@ -138,10 +155,11 @@ Rules:
 
   async function handleGoogleSignIn() {
     try {
-      await signInWithPopup(auth, provider);
-      // onAuthStateChanged will handle hiding landing
+      // Use redirect — works on GitHub Pages, avoids popup blockers
+      await signInWithRedirect(auth, provider);
     } catch (error) {
       console.error('Sign in error:', error);
+      alert('Sign in failed: ' + error.message);
     }
   }
 

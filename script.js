@@ -17,6 +17,12 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChang
   let apiKey = localStorage.getItem('luke_api_key') || DEFAULT_KEY;
   let model = localStorage.getItem('luke_model') || 'llama-3.1-8b-instant';
   
+  // Guest mode state
+  const GUEST_CHAT_LIMIT = 2;
+  let isGuestMode = false;
+  let guestChatCount = parseInt(localStorage.getItem('luke_guest_chats') || '0', 10);
+  let currentUser = null;
+
   let threads = [];
   let currentThreadId = null;
   let isProcessing = false;
@@ -101,6 +107,13 @@ Rules:
   const userProfile = $('user-profile');
   const userAvatar = $('user-avatar');
 
+  // Landing Elements
+  const landingOverlay = $('landing-overlay');
+  const landingGoogleBtn = $('landing-google-btn');
+  const landingGuestBtn = $('landing-guest-btn');
+  const guestLimitModal = $('guest-limit-modal');
+  const guestSigninBtn = $('guest-signin-btn');
+
   // ===== FIREBASE INIT & AUTH =====
   const firebaseConfig = {
     apiKey: "AIzaSyBM0vmh73JghpWuUoXPkEqBC8I_-mvnHmg",
@@ -115,15 +128,50 @@ Rules:
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
-  // Auth Listeners
+  // ===== LANDING PAGE LOGIC =====
+  function showLanding() {
+    landingOverlay.classList.remove('hidden');
+  }
+  function hideLanding() {
+    landingOverlay.classList.add('hidden');
+  }
+
+  async function handleGoogleSignIn() {
+    try {
+      await signInWithPopup(auth, provider);
+      // onAuthStateChanged will handle hiding landing
+    } catch (error) {
+      console.error('Sign in error:', error);
+    }
+  }
+
+  function handleGuestContinue() {
+    isGuestMode = true;
+    hideLanding();
+    // Reset guest count if needed but keep storage persisted
+    // guestChatCount already loaded from storage
+  }
+
+  function checkGuestLimit() {
+    if (!isGuestMode || currentUser) return true; // signed in = no limit
+    if (guestChatCount >= GUEST_CHAT_LIMIT) {
+      guestLimitModal.style.display = 'flex';
+      return false;
+    }
+    return true;
+  }
+
+  // Landing buttons
+  if (landingGoogleBtn) landingGoogleBtn.addEventListener('click', handleGoogleSignIn);
+  if (landingGuestBtn) landingGuestBtn.addEventListener('click', handleGuestContinue);
+  if (guestSigninBtn) guestSigninBtn.addEventListener('click', async () => {
+    guestLimitModal.style.display = 'none';
+    await handleGoogleSignIn();
+  });
+
+  // Header Auth Listeners
   if (loginBtn) {
-    loginBtn.addEventListener('click', async () => {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (error) {
-        console.error("Error signing in", error);
-      }
-    });
+    loginBtn.addEventListener('click', handleGoogleSignIn);
   }
 
   if (logoutBtn) {
@@ -131,26 +179,34 @@ Rules:
       try {
         await signOut(auth);
       } catch (error) {
-        console.error("Error signing out", error);
+        console.error('Error signing out', error);
       }
     });
   }
 
   // Monitor Auth State
   onAuthStateChanged(auth, (user) => {
+    currentUser = user;
     if (user) {
-      // Logged in
+      // Signed in — dismiss everything and show app
+      isGuestMode = false;
+      hideLanding();
+      guestLimitModal.style.display = 'none';
       loginBtn.style.display = 'none';
       userProfile.style.display = 'flex';
-      userAvatar.src = user.photoURL || 'https://via.placeholder.com/32';
-      userAvatar.title = user.displayName;
+      userAvatar.src = user.photoURL || '';
+      userAvatar.title = user.displayName || 'User';
     } else {
-      // Logged out
+      // Signed out — show landing unless already in guest mode
       loginBtn.style.display = 'flex';
       userProfile.style.display = 'none';
       userAvatar.src = '';
+      if (!isGuestMode) {
+        showLanding();
+      }
     }
   });
+
 
   // Tool Definitions
   const tools = [
@@ -998,6 +1054,9 @@ Rules:
     if (!text && !uploadedFileText) return;
     if (isProcessing) return;
 
+    // Guest limit gate
+    if (!checkGuestLimit()) return;
+
     userInput.value = '';
     userInput.style.height = 'auto';
     sendBtn.disabled = true;
@@ -1098,6 +1157,19 @@ Rules:
       thread.messages.push({ role: 'assistant', content: replyText });
       saveThreadsToStorage();
       speak(replyText);
+
+      // Increment guest chat counter after successful response
+      if (isGuestMode && !currentUser) {
+        guestChatCount++;
+        localStorage.setItem('luke_guest_chats', guestChatCount);
+        // Warn user on last free chat
+        if (guestChatCount >= GUEST_CHAT_LIMIT) {
+          setTimeout(() => {
+            guestLimitModal.style.display = 'flex';
+          }, 1200);
+        }
+      }
+
 
     } catch (err) {
       console.error(err);

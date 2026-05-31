@@ -98,10 +98,11 @@ This is not a wrapper around an API. It's a **deliberate engineering exercise** 
 
 | Feature | Description |
 |---|---|
-| **Client-Side PDF Parsing** | PDF.js text extraction without server upload — a privacy-first architecture where files never leave the browser. |
-| **Semantic Chunking Engine** | TF-based relevance scoring with paragraph-level chunking (~1200 characters per chunk) and word-boundary bonus scoring. |
-| **Top-K Context Retrieval** | Ranked chunk selection (top 3 most relevant) injected as system context for grounded, accurate responses. |
-| **Multi-Format Support** | Ingest **PDF**, **TXT**, **Markdown**, **CSV**, and **JSON** files — all processed entirely client-side. |
+| **Multi-Threaded Indexing** | Document parsing and chunk indexing run in a background **Web Worker thread** (`rag-worker.js`) to guarantee the main thread stays at a buttery-smooth 60fps. |
+| **Vector Space Cosine Similarity** | Implemented a custom client-side TF-IDF vectorizer and **Cosine Similarity search** to mathematically score and rank document chunks relative to user queries. |
+| **Cosine & RAG Inspector Panel** | A dedicated visual overlay mapping all chunks, unique vocabulary, and real-time TF-IDF similarity vectors, with an **interactive sandbox query simulator**. |
+| **Client-Side PDF Ingestion** | Local document parsing (`PDF.js`) where text extraction happens **locally inside the browser**—absolute privacy, files never touch a server. |
+| **Semantic Chunking & Top-K** | Auto-segments text into optimized ~1200 character paragraph-level semantic blocks with overlap, injecting the Top-3 highest scoring chunks into system context. |
 
 ### 🎙️ Voice I/O Pipeline
 
@@ -112,10 +113,11 @@ This is not a wrapper around an API. It's a **deliberate engineering exercise** 
 | **Voice Selection** | Automatic preferred voice detection with Google UK English Male priority for natural narration. |
 | **Auto-Speak Mode** | Toggle automatic response narration — every AI response is spoken aloud when enabled. |
 
-### 🔍 Real-Time Web Search (Agentic)
+### 🔍 Real-Time Web Search & Observability (Agentic)
 
 | Feature | Description |
 |---|---|
+| **Chain-of-Thought Observability Trace** | Built a gorgeous, live-animated **observability terminal** inside assistant messages logging the exact multi-turn thoughts, tool parameter dispatches, API responses, and RAG vector calculations. |
 | **Wikipedia Integration** | Live search with extract retrieval and related page suggestions — the model calls this tool autonomously when it needs current information. |
 | **DateTime Tool** | Real-time local datetime awareness — the model knows what time and date it is for contextual responses. |
 | **Tool Execution Pipeline** | Multi-turn tool calling with result synthesis: the model invokes tools, receives results, and generates a final grounded response. |

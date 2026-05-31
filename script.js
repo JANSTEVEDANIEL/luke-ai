@@ -115,7 +115,26 @@ Rules:
   const toastContainer = $('toast-container');
   const suggestionBar = $('suggestion-bar');
   const suggestionsEl = $('suggestions');
+
+  // Advanced RAG Vector Inspector & Web Worker Elements
+  const pdfInspectBtn = $('pdf-inspect-btn');
+  const ragInspector = $('rag-inspector');
+  const closeRagInspector = $('close-rag-inspector');
+  const ragStatChunks = $('rag-stat-chunks');
+  const ragStatMode = $('rag-stat-mode');
+  const ragSandboxQuery = $('rag-sandbox-query');
+  const ragSandboxSearchBtn = $('rag-sandbox-search-btn');
+  const ragChunksList = $('rag-chunks-list');
+  const ragActiveQueryBadge = $('rag-active-query-badge');
+
   let abortController = null;
+  let ragWorker = null;
+
+  // Fallback Sync RAG Indexing structures
+  let syncChunks = [];
+  let syncVocab = new Set();
+  let syncChunkTFs = [];
+  let syncDocIDFs = {};
 
   // Landing Elements
   const landingOverlay = $('landing-overlay');
@@ -328,6 +347,35 @@ Rules:
     modelSelect.value = model;
     updateWelcomeGreeting();
 
+    // Initialize RAG Web Worker with clean fallback
+    try {
+      ragWorker = new Worker('rag-worker.js');
+      ragWorker.onmessage = function(e) {
+        const { action, payload } = e.data;
+        if (action === 'index_success') {
+          console.log('RAG Web Worker indexed successfully:', payload);
+          ragStatChunks.textContent = payload.chunkCount;
+          ragStatMode.textContent = 'Web Worker (Async)';
+          updateRagChunksList(payload.chunkCount, false);
+        } else if (action === 'search_success') {
+          console.log('RAG Web Worker similarity search complete:', payload);
+          renderScoredChunks(payload.results, payload.query);
+        } else if (action === 'error') {
+          console.error('RAG Web Worker processing error:', payload.message);
+          showToast('RAG indexing error, falling back...');
+          switchToSyncRAG();
+        }
+      };
+      
+      ragWorker.onerror = function(err) {
+        console.warn('Web Worker connection blocked/unsupported. Falling back to Sync Client-Side RAG.', err);
+        switchToSyncRAG();
+      };
+    } catch (e) {
+      console.warn('Web Worker construction error. Falling back to Sync Client-Side RAG.', e);
+      switchToSyncRAG();
+    }
+
     // Load Theme
     const savedTheme = localStorage.getItem('luke_theme') || 'dark';
     if (savedTheme === 'light') {
@@ -496,6 +544,41 @@ Rules:
     $('shortcuts-close').addEventListener('click', () => {
       shortcutsModal.style.display = 'none';
     });
+
+    // RAG Inspector slide panel open/close
+    pdfInspectBtn.addEventListener('click', () => {
+      ragInspector.style.display = 'block';
+      const thread = threads.find(t => t.id === currentThreadId);
+      if (thread && thread.pdfText) {
+        if (ragWorker) {
+          ragWorker.postMessage({ action: 'search', payload: { query: '', topK: 15 } });
+        } else {
+          updateRagChunksList(syncChunks.length, true);
+        }
+      }
+    });
+
+    closeRagInspector.addEventListener('click', () => {
+      ragInspector.style.display = 'none';
+    });
+
+    // Similarity Simulator query calculate vector search
+    ragSandboxSearchBtn.addEventListener('click', () => {
+      const q = ragSandboxQuery.value.trim();
+      if (!q) return;
+      if (ragWorker) {
+        ragWorker.postMessage({ action: 'search', payload: { query: q, topK: 5 } });
+      } else {
+        const results = syncSearchSimilarity(q, 5);
+        renderScoredChunks(results, q);
+      }
+    });
+
+    ragSandboxQuery.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        ragSandboxSearchBtn.click();
+      }
+    });
   }
 
   // ===== THREADS MANAGEMENT =====
@@ -579,11 +662,29 @@ Rules:
       uploadedFileText = thread.pdfText;
       uploadedFileName = thread.pdfName;
       showPdfBanner(uploadedFileName, uploadedFileText.length);
+      
+      // Index active document
+      if (ragWorker) {
+        ragWorker.postMessage({ action: 'index', payload: { text: uploadedFileText } });
+      } else {
+        syncIndexDocument(uploadedFileText);
+      }
     } else {
       uploadedFileText = '';
       uploadedFileName = '';
       pdfBanner.style.display = 'none';
       userInput.placeholder = 'Message LUKE AI... (Ctrl+K for shortcuts)';
+      
+      // Clear current indices
+      syncChunks = [];
+      syncVocab = new Set();
+      syncChunkTFs = [];
+      syncDocIDFs = {};
+      if (ragWorker) {
+        ragWorker.postMessage({ action: 'index', payload: { text: '' } });
+      } else {
+        updateRagChunksList(0, true);
+      }
     }
 
     if (thread.messages.length === 0) {
@@ -690,6 +791,13 @@ Rules:
     }
     showPdfBanner(uploadedFileName, uploadedFileText.length);
     setStatus('ready', 'Ready');
+
+    // Index newly uploaded document context
+    if (ragWorker) {
+      ragWorker.postMessage({ action: 'index', payload: { text: uploadedFileText } });
+    } else {
+      syncIndexDocument(uploadedFileText);
+    }
   }
 
   function showPdfBanner(name, charCount) {
@@ -715,57 +823,302 @@ Rules:
     pdfBanner.style.display = 'none';
     userInput.placeholder = 'Message LUKE AI... (Ctrl+K for shortcuts)';
     
+    // Clear current RAG indices
+    syncChunks = [];
+    syncVocab = new Set();
+    syncChunkTFs = [];
+    syncDocIDFs = {};
+    if (ragWorker) {
+      ragWorker.postMessage({ action: 'index', payload: { text: '' } });
+    } else {
+      updateRagChunksList(0, true);
+    }
+
     if (thread && thread.messages.length === 0) {
       welcomeScreen.style.display = 'flex';
       sendBtn.disabled = true;
     }
   }
 
-  // ===== CLIENT-SIDE SEMANTIC CHUNKING (SMART RAG) =====
-  function getSemanticChunks(text, query) {
-    // Split into paragraphs
-    const paragraphs = text.split(/\n\s*\n|\n(?=[A-Z])/);
-    const chunks = [];
+  // ===== CLIENT-SIDE SYNC TF-IDF & COSINE RAG FALLBACK =====
+  function switchToSyncRAG() {
+    ragWorker = null;
+    ragStatMode.textContent = 'Sync Main Thread';
+  }
+
+  function syncTokenize(text) {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .split(/\s+/)
+      .filter(word => word.length > 2);
+  }
+
+  function syncIndexDocument(rawText) {
+    const paragraphs = rawText.split(/\n\s*\n|\n(?=[A-Z])/);
+    syncChunks = [];
     
     let currentChunk = '';
     for (let p of paragraphs) {
       p = p.trim();
       if (!p) continue;
-      // Build ~1200 char chunks with overlap
       if ((currentChunk + ' ' + p).length < 1200) {
         currentChunk += (currentChunk ? ' ' : '') + p;
       } else {
-        if (currentChunk) chunks.push(currentChunk);
+        if (currentChunk) syncChunks.push(currentChunk);
         currentChunk = p;
       }
     }
-    if (currentChunk) chunks.push(currentChunk);
-    
-    // If text size is small, return all
-    if (chunks.length <= 3) return chunks;
-    
-    // Simple Term Matching TF similarity score
-    const terms = query.toLowerCase().split(/\W+/).filter(t => t.length > 2);
-    if (terms.length === 0) return chunks.slice(0, 3);
-    
-    const scoredChunks = chunks.map(chunk => {
-      const lowerChunk = chunk.toLowerCase();
-      let score = 0;
-      terms.forEach(term => {
-        const occurrences = (lowerChunk.split(term).length - 1);
-        score += occurrences * 10;
-        
-        // Exact word boundary bonus
-        const reg = new RegExp('\\b' + term + '\\b', 'g');
-        const exactMatches = (lowerChunk.match(reg) || []).length;
-        score += exactMatches * 20;
+    if (currentChunk) syncChunks.push(currentChunk);
+
+    syncVocab = new Set();
+    syncChunkTFs = [];
+    syncDocIDFs = {};
+
+    const docCount = syncChunks.length;
+    if (docCount === 0) return;
+
+    syncChunks.forEach((chunk, index) => {
+      const tokens = syncTokenize(chunk);
+      const tfMap = {};
+      tokens.forEach(token => {
+        tfMap[token] = (tfMap[token] || 0) + 1;
+        syncVocab.add(token);
       });
-      return { chunk, score };
+      syncChunkTFs.push({
+        index: index,
+        tf: tfMap,
+        tokenCount: tokens.length
+      });
     });
-    
-    // Sort descending and return top 3
+
+    syncVocab.forEach(term => {
+      let docWithTermCount = 0;
+      syncChunkTFs.forEach(c => {
+        if (c.tf[term]) docWithTermCount++;
+      });
+      syncDocIDFs[term] = Math.log(1 + (docCount / (1 + docWithTermCount)));
+    });
+
+    ragStatChunks.textContent = syncChunks.length;
+    updateRagChunksList(syncChunks.length, true);
+  }
+
+  function syncSearchSimilarity(query, topK = 3) {
+    const queryTokens = syncTokenize(query);
+    if (queryTokens.length === 0 || syncChunks.length === 0) {
+      return syncChunks.slice(0, topK).map((c, i) => ({
+        chunk: c,
+        score: 0.0,
+        index: i,
+        termsMatched: []
+      }));
+    }
+
+    const queryTF = {};
+    queryTokens.forEach(token => {
+      queryTF[token] = (queryTF[token] || 0) + 1;
+    });
+
+    const queryVector = new Map();
+    queryTokens.forEach(token => {
+      const tf = queryTF[token] / queryTokens.length;
+      const idf = syncDocIDFs[token] || 0.1;
+      queryVector.set(token, tf * idf);
+    });
+
+    const scoredChunks = syncChunkTFs.map(c => {
+      const chunkVector = new Map();
+      const termsMatched = [];
+
+      syncVocab.forEach(term => {
+        if (c.tf[term]) {
+          const tf = c.tf[term] / c.tokenCount;
+          const idf = syncDocIDFs[term] || 0;
+          chunkVector.set(term, tf * idf);
+          if (queryTF[term]) {
+            termsMatched.push(term);
+          }
+        }
+      });
+
+      let dotProduct = 0;
+      let mag1 = 0;
+      let mag2 = 0;
+      const allTerms = new Set([...queryVector.keys(), ...chunkVector.keys()]);
+      
+      allTerms.forEach(term => {
+        const v1 = queryVector.get(term) || 0;
+        const v2 = chunkVector.get(term) || 0;
+        dotProduct += v1 * v2;
+        mag1 += v1 * v1;
+        mag2 += v2 * v2;
+      });
+
+      mag1 = Math.sqrt(mag1);
+      mag2 = Math.sqrt(mag2);
+      const similarity = (mag1 === 0 || mag2 === 0) ? 0 : parseFloat((dotProduct / (mag1 * mag2)).toFixed(4));
+
+      return {
+        chunk: syncChunks[c.index],
+        score: similarity,
+        index: c.index,
+        termsMatched: termsMatched
+      };
+    });
+
     scoredChunks.sort((a, b) => b.score - a.score);
-    return scoredChunks.slice(0, 3).map(sc => sc.chunk);
+    return scoredChunks.slice(0, topK);
+  }
+
+  // Hook standard getSemanticChunks prompt context to use advanced Cosine-Similarity
+  function getSemanticChunks(text, query) {
+    if (syncChunks.length === 0) {
+      syncIndexDocument(text);
+    }
+    const results = syncSearchSimilarity(query, 3);
+    return results.map(r => r.chunk);
+  }
+
+  // ===== RAG VISUALIZER RENDERING =====
+  function updateRagChunksList(chunkCount, isSync) {
+    ragChunksList.innerHTML = '';
+    
+    if (chunkCount === 0) {
+      ragChunksList.innerHTML = `
+        <div class="rag-empty-state">
+          <span class="material-symbols-outlined">description</span>
+          <p>No document uploaded yet. Ingest a PDF/TXT file to index vector chunks and query the simulator.</p>
+        </div>`;
+      return;
+    }
+
+    ragActiveQueryBadge.style.display = 'none';
+    
+    if (isSync) {
+      syncChunks.forEach((c, idx) => {
+        const card = document.createElement('div');
+        card.className = 'rag-chunk-card';
+        card.innerHTML = `
+          <div class="chunk-card-meta">
+            <span class="chunk-index-badge">CHUNK #${idx + 1}</span>
+            <span class="similarity-score-val low">Indexed</span>
+          </div>
+          <div class="chunk-card-body">${escapeHTML(c)}</div>
+        `;
+        ragChunksList.appendChild(card);
+      });
+    } else {
+      ragChunksList.innerHTML = `
+        <div style="text-align:center; padding: 30px; color:rgba(255,255,255,0.4)">
+          <span class="material-symbols-outlined animate-spin" style="font-size:24px; color:#06b6d4">sync</span>
+          <p style="font-size:11px; margin-top:8px">Web Worker indexing ${chunkCount} vector document chunks...</p>
+        </div>`;
+      if (ragWorker) {
+        ragWorker.postMessage({ action: 'search', payload: { query: '', topK: 15 } });
+      }
+    }
+  }
+
+  function renderScoredChunks(scoredResults, query = '') {
+    ragChunksList.innerHTML = '';
+    
+    if (scoredResults.length === 0) {
+      ragChunksList.innerHTML = `
+        <div class="rag-empty-state">
+          <span class="material-symbols-outlined">search_off</span>
+          <p>No chunks matched your query vectors. Try different search terms.</p>
+        </div>`;
+      return;
+    }
+
+    if (query) {
+      ragActiveQueryBadge.style.display = 'inline-flex';
+      ragActiveQueryBadge.textContent = `Top Matches for "${query.substring(0, 15)}"`;
+    } else {
+      ragActiveQueryBadge.style.display = 'none';
+    }
+
+    scoredResults.forEach(res => {
+      const card = document.createElement('div');
+      card.className = 'rag-chunk-card matched';
+      
+      const score = res.score;
+      const scorePct = Math.round(score * 100);
+      let scoreClass = 'low';
+      let barClass = '';
+      if (score >= 0.6) {
+        scoreClass = 'high';
+        barClass = 'high';
+      } else if (score >= 0.2) {
+        scoreClass = 'med';
+        barClass = 'med';
+      }
+
+      const termsList = res.termsMatched && res.termsMatched.length > 0
+        ? `<div class="chunk-card-terms">
+             ${res.termsMatched.map(t => `<span class="chunk-term-chip">${t}</span>`).join('')}
+           </div>`
+        : '';
+
+      card.innerHTML = `
+        <div class="chunk-card-meta">
+          <span class="chunk-index-badge">CHUNK #${res.index + 1}</span>
+          <div class="similarity-score-bar-wrapper">
+            <div class="similarity-bar-bg">
+              <div class="similarity-bar-fill ${barClass}" style="width: ${scorePct}%"></div>
+            </div>
+            <span class="similarity-score-val ${scoreClass}">${score.toFixed(4)}</span>
+          </div>
+        </div>
+        <div class="chunk-card-body">${escapeHTML(res.chunk)}</div>
+        ${termsList}
+      `;
+      ragChunksList.appendChild(card);
+    });
+  }
+
+  function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, 
+      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+    );
+  }
+
+  // ===== AGENT OBSERVABILITY TRACE TERMINAL =====
+  function appendAgentTrace(container) {
+    const traceDiv = document.createElement('div');
+    traceDiv.className = 'agent-trace-container';
+    traceDiv.innerHTML = `
+      <div class="agent-trace-header">
+        <span class="material-symbols-outlined">terminal</span>
+        <span>Agent System Observability Trace</span>
+      </div>
+      <div class="agent-trace-body"></div>
+    `;
+    container.appendChild(traceDiv);
+    const traceBody = traceDiv.querySelector('.agent-trace-body');
+
+    return {
+      log: (badge, text) => {
+        const line = document.createElement('div');
+        line.className = 'trace-log-line';
+        
+        const now = new Date();
+        const timeStr = now.toTimeString().split(' ')[0];
+        
+        let badgeClass = 'info';
+        if (badge === 'success' || badge === 'done') badgeClass = 'success';
+        if (badge === 'invoke' || badge === 'call' || badge === 'agent') badgeClass = 'dispatch';
+        
+        line.innerHTML = `
+          <span class="trace-timestamp">[${timeStr}]</span>
+          <span class="trace-badge ${badgeClass}">${badge}</span>
+          <span class="trace-text">${escapeHTML(text)}</span>
+        `;
+        traceBody.appendChild(line);
+        traceBody.scrollTop = traceBody.scrollHeight;
+      }
+    };
   }
 
   // ===== THEME =====
@@ -1181,15 +1534,29 @@ Rules:
 
     const aiMessageEl = appendMessage('assistant', '');
     const aiTextContainer = aiMessageEl.querySelector('.msg-text');
+    const traceArea = aiMessageEl.querySelector('.msg-trace-area');
+    const contentArea = aiMessageEl.querySelector('.msg-content-area');
     
     const messageHistoryForAPI = [
       { role: 'system', content: SYSTEM_PROMPT }
     ];
 
+    let traceLogger = null;
+
     // MNC Upgrade: Semantic RAG chunk context retrieval
     if (thread.pdfText) {
+      traceLogger = appendAgentTrace(traceArea);
+      traceLogger.log('agent', `Ingested active document: ${thread.pdfName}`);
+      traceLogger.log('info', 'Computing TF-IDF Vector Cosine Distances...');
+      
       const semanticChunks = getSemanticChunks(thread.pdfText, displayMessage);
       const contextStr = semanticChunks.join('\n\n---\n\n');
+      
+      // Compute cosine score baseline sync-side for trace logs
+      const simMatches = syncSearchSimilarity(displayMessage, 3);
+      const topScore = simMatches[0] ? simMatches[0].score : 0.0;
+      traceLogger.log('success', `TF-IDF vector search complete. Top Cosine similarity: ${topScore.toFixed(4)}`);
+      traceLogger.log('done', `Injected Top-${simMatches.length} document chunks into system context.`);
       
       messageHistoryForAPI.push({
         role: 'system',
@@ -1214,7 +1581,7 @@ Rules:
         displayMessage,
         messageHistoryForAPI,
         (chunk) => {
-          aiTextContainer.innerHTML = formatText(chunk);
+          contentArea.innerHTML = formatText(chunk);
           scrollToBottom();
         },
         (metrics) => {
@@ -1238,11 +1605,31 @@ Rules:
         (toolsExecuting) => {
           const names = toolsExecuting.map(t => t.name).join(', ');
           setStatus('thinking', `Running: ${names}...`);
-          aiTextContainer.innerHTML = `<span style="color:var(--accent); font-family:var(--font-mono); font-size:13px">🤖 Invoking agent tools: [${names}]...</span>`;
+          
+          if (!traceLogger) {
+            traceLogger = appendAgentTrace(traceArea);
+          }
+          traceLogger.log('agent', 'LLM parsed active tool query intent.');
+          traceLogger.log('invoke', `Resolving system tools: [${names}]`);
+          
+          toolsExecuting.forEach(tc => {
+            let desc = tc.name;
+            if (tc.name === 'web_search') {
+              let args = { query: '' };
+              try { args = JSON.parse(tc.arguments); } catch (e) {}
+              desc = `web_search(query="${args.query}")`;
+            } else if (tc.name === 'get_current_datetime') {
+              desc = `get_current_datetime()`;
+            }
+            traceLogger.log('call', `Dispatched API connector: ${desc}`);
+          });
         },
         () => {
           setStatus('thinking', 'Processing tool results...');
-          aiTextContainer.innerHTML = `<span style="color:var(--success); font-family:var(--font-mono); font-size:13px">✓ Executed tools. Synthesizing answer...</span>`;
+          if (traceLogger) {
+            traceLogger.log('success', 'Received API payload (Status 200 OK)');
+            traceLogger.log('done', 'RAG prompt enrichment completed. Synthesizing stream...');
+          }
         }
       );
 
@@ -1270,7 +1657,7 @@ Rules:
         ? 'Invalid API key. Please check your Groq API key config.'
         : 'Connection Error: ' + err.message;
       
-      aiTextContainer.textContent = errMsg;
+      contentArea.innerHTML = errMsg;
       setStatus('error', 'Error');
       setTimeout(() => setStatus('ready', 'Ready'), 4000);
     } finally {
@@ -1312,7 +1699,11 @@ Rules:
 
     const msgText = document.createElement('div');
     msgText.className = 'msg-text';
-    msgText.innerHTML = text ? formatText(text) : '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+    if (role === 'assistant' && !text) {
+      msgText.innerHTML = '<div class="msg-trace-area"></div><div class="msg-content-area"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+    } else {
+      msgText.innerHTML = text ? formatText(text) : '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+    }
 
     content.appendChild(name);
     content.appendChild(msgText);

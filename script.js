@@ -108,6 +108,15 @@ Rules:
   const userProfile = $('user-profile');
   const userAvatar = $('user-avatar');
 
+  // New Feature Elements
+  const threadSearch = $('thread-search');
+  const stopBtn = $('stop-btn');
+  const offlineBanner = $('offline-banner');
+  const toastContainer = $('toast-container');
+  const suggestionBar = $('suggestion-bar');
+  const suggestionsEl = $('suggestions');
+  let abortController = null;
+
   // Landing Elements
   const landingOverlay = $('landing-overlay');
   const landingGoogleBtn = $('landing-google-btn');
@@ -1166,6 +1175,9 @@ Rules:
 
     isProcessing = true;
     setStatus('thinking', 'Thinking...');
+    sendBtn.style.display = 'none';
+    stopBtn.style.display = 'flex';
+    if (suggestionBar) suggestionBar.style.display = 'none';
 
     const aiMessageEl = appendMessage('assistant', '');
     const aiTextContainer = aiMessageEl.querySelector('.msg-text');
@@ -1238,18 +1250,19 @@ Rules:
       saveThreadsToStorage();
       speak(replyText);
 
+      // Show smart follow-up suggestions
+      showSmartSuggestions(replyText);
+
       // Increment guest chat counter after successful response
       if (isGuestMode && !currentUser) {
         guestChatCount++;
         localStorage.setItem('luke_guest_chats', guestChatCount);
-        // Warn user on last free chat
         if (guestChatCount >= GUEST_CHAT_LIMIT) {
           setTimeout(() => {
             guestLimitModal.style.display = 'flex';
           }, 1200);
         }
       }
-
 
     } catch (err) {
       console.error(err);
@@ -1262,6 +1275,8 @@ Rules:
       setTimeout(() => setStatus('ready', 'Ready'), 4000);
     } finally {
       isProcessing = false;
+      stopBtn.style.display = 'none';
+      sendBtn.style.display = 'flex';
       if (!isSpeaking) setStatus('ready', 'Ready');
     }
   }
@@ -1277,7 +1292,11 @@ Rules:
     const avatar = document.createElement('div');
     avatar.className = 'msg-avatar';
     if (role === 'user') {
-      avatar.textContent = 'U';
+      if (currentUser && currentUser.photoURL) {
+        avatar.innerHTML = `<img src="${currentUser.photoURL}" referrerpolicy="no-referrer" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+      } else {
+        avatar.textContent = 'U';
+      }
     } else {
       avatar.innerHTML = `<svg width="18" height="18" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="6" fill="url(#mGrad)"/><circle cx="14" cy="14" r="12" stroke="url(#mGrad)" stroke-width="1.5" opacity="0.5"/><defs><linearGradient id="mGrad" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#6C63FF"/><stop offset="1" stop-color="#3B82F6"/></linearGradient></defs></svg>`;
     }
@@ -1287,7 +1306,9 @@ Rules:
 
     const name = document.createElement('div');
     name.className = 'msg-name';
-    name.textContent = role === 'user' ? 'You' : 'LUKE AI';
+    name.textContent = role === 'user'
+      ? (currentUser && currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'You')
+      : 'LUKE AI';
 
     const msgText = document.createElement('div');
     msgText.className = 'msg-text';
@@ -1295,6 +1316,59 @@ Rules:
 
     content.appendChild(name);
     content.appendChild(msgText);
+
+    // Message Action Toolbar (AI messages only, with content)
+    if (role === 'assistant' && text) {
+      const actions = document.createElement('div');
+      actions.className = 'msg-actions';
+      actions.innerHTML = `
+        <button class="msg-action-btn" data-action="copy" title="Copy response">
+          <span class="material-symbols-outlined">content_copy</span>
+        </button>
+        <button class="msg-action-btn" data-action="regen" title="Regenerate response">
+          <span class="material-symbols-outlined">refresh</span>
+        </button>
+        <button class="msg-action-btn" data-action="like" title="Good response">
+          <span class="material-symbols-outlined">thumb_up</span>
+        </button>
+        <button class="msg-action-btn" data-action="dislike" title="Poor response">
+          <span class="material-symbols-outlined">thumb_down</span>
+        </button>
+      `;
+      actions.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        const rawText = msgText.innerText || msgText.textContent;
+
+        if (action === 'copy') {
+          navigator.clipboard.writeText(rawText).then(() => showToast('Copied to clipboard'));
+        } else if (action === 'like') {
+          btn.classList.toggle('active');
+          btn.parentElement.querySelector('[data-action="dislike"]').classList.remove('active');
+          showToast('Thanks for the feedback!');
+        } else if (action === 'dislike') {
+          btn.classList.toggle('active');
+          btn.parentElement.querySelector('[data-action="like"]').classList.remove('active');
+          showToast('Feedback noted. We\'ll improve!');
+        } else if (action === 'regen') {
+          const thread = threads.find(t => t.id === currentThreadId);
+          if (thread && thread.messages.length >= 2) {
+            // Remove last assistant + user pair and resend
+            const lastUserMsg = [...thread.messages].reverse().find(m => m.role === 'user');
+            if (lastUserMsg) {
+              thread.messages.pop(); // remove assistant
+              saveThreadsToStorage();
+              div.remove();
+              userInput.value = lastUserMsg.content;
+              handleSend();
+            }
+          }
+        }
+      });
+      content.appendChild(actions);
+    }
+
     inner.appendChild(avatar);
     inner.appendChild(content);
     div.appendChild(inner);
@@ -1548,6 +1622,94 @@ Rules:
     isSpeaking = false;
     responseMetrics.style.display = 'none';
     setStatus('ready', 'Ready');
+  }
+
+  // ===== TOAST NOTIFICATION SYSTEM =====
+  function showToast(message, duration = 2500) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
+
+  // ===== SMART FOLLOW-UP SUGGESTIONS =====
+  function showSmartSuggestions(aiReply) {
+    if (!suggestionBar || !suggestionsEl) return;
+    // Extract keywords from the AI reply to create relevant follow-ups
+    const sentences = aiReply.replace(/```[\s\S]*?```/g, '').split(/[.!?]\s/).filter(s => s.length > 15);
+    const suggestions = [];
+    
+    if (sentences.length > 0) {
+      suggestions.push('Explain this in more detail');
+      suggestions.push('Give me a practical example');
+      suggestions.push('What are the alternatives?');
+    }
+    
+    if (suggestions.length === 0) return;
+    
+    suggestionsEl.innerHTML = '';
+    suggestions.forEach(text => {
+      const chip = document.createElement('button');
+      chip.className = 'suggestion-chip';
+      chip.textContent = text;
+      chip.addEventListener('click', () => {
+        userInput.value = text;
+        sendBtn.disabled = false;
+        suggestionBar.style.display = 'none';
+        handleSend();
+      });
+      suggestionsEl.appendChild(chip);
+    });
+    suggestionBar.style.display = 'flex';
+  }
+
+  // ===== CONVERSATION SEARCH =====
+  if (threadSearch) {
+    threadSearch.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      const items = threadList.querySelectorAll('.thread-item');
+      items.forEach((item, idx) => {
+        if (!query) {
+          item.style.display = '';
+          return;
+        }
+        const thread = threads[idx];
+        if (!thread) { item.style.display = 'none'; return; }
+        const titleMatch = thread.title.toLowerCase().includes(query);
+        const msgMatch = thread.messages.some(m => m.content.toLowerCase().includes(query));
+        item.style.display = (titleMatch || msgMatch) ? '' : 'none';
+      });
+    });
+  }
+
+  // ===== OFFLINE DETECTION =====
+  window.addEventListener('offline', () => {
+    if (offlineBanner) offlineBanner.style.display = 'flex';
+    showToast('You are offline');
+  });
+  window.addEventListener('online', () => {
+    if (offlineBanner) offlineBanner.style.display = 'none';
+    showToast('Back online!');
+  });
+
+  // ===== STOP GENERATION =====
+  if (stopBtn) {
+    stopBtn.addEventListener('click', () => {
+      if (abortController) {
+        abortController.abort();
+        abortController = null;
+      }
+      isProcessing = false;
+      stopBtn.style.display = 'none';
+      sendBtn.style.display = 'flex';
+      setStatus('ready', 'Ready');
+      showToast('Generation stopped');
+    });
   }
 
   // ===== AUTO RESIZE TEXTAREA =====

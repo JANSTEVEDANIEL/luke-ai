@@ -47,6 +47,12 @@
         </button>
       </div>
       
+      <!-- Conversation Search -->
+      <div class="sidebar-search">
+        <span class="material-symbols-outlined sidebar-search-icon">search</span>
+        <input type="text" id="thread-search" class="thread-search-input" placeholder="Search conversations..." autocomplete="off">
+      </div>
+
       <!-- Scrollable Conversation History -->
       <div id="thread-list" class="thread-list">
         <!-- Thread items are dynamically generated here -->
@@ -263,6 +269,11 @@
           <!-- Textarea (Auto-resizes client-side) -->
           <textarea id="user-input" placeholder="Message Luke AI... (Ctrl+K for hotkeys)" rows="1" autocomplete="off"></textarea>
           
+          <!-- Stop Generation Button -->
+          <button id="stop-btn" class="stop-action-btn" title="Stop generation (Esc)" aria-label="Stop generation" style="display:none">
+            <span class="material-symbols-outlined icon-fill">stop_circle</span>
+          </button>
+          
           <!-- Send Action Button -->
           <button id="send-btn" class="send-action-btn" title="Send message (Enter)" aria-label="Send message" disabled>
             <span class="material-symbols-outlined icon-fill">arrow_upward</span>
@@ -436,6 +447,16 @@
       </div>
     </div>
   </div>
+
+  <!-- OFFLINE DETECTION BANNER -->
+  <div id="offline-banner" class="offline-banner" style="display:none">
+    <span class="material-symbols-outlined">cloud_off</span>
+    <span>You're offline. Reconnecting...</span>
+    <div class="offline-pulse"></div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-container" class="toast-container"></div>
 
   <!-- ===== SIGN-IN LANDING PAGE OVERLAY ===== -->
   <div id="landing-overlay" class="landing-overlay">

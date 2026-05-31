@@ -113,6 +113,7 @@ Rules:
   const stopBtn = $('stop-btn');
   const offlineBanner = $('offline-banner');
   const toastContainer = $('toast-container');
+  const mobileSidebarClose = $('mobile-sidebar-close');
   const suggestionBar = $('suggestion-bar');
   const suggestionsEl = $('suggestions');
 
@@ -215,6 +216,11 @@ Rules:
     setTimeout(() => {
       landingOverlay.classList.add('hidden');
     }, 400);
+
+    // Auto-collapse sidebar on mobile sign-in so user sees welcome dashboard
+    if (window.innerWidth <= 768) {
+      sidebar.classList.add('collapsed');
+    }
   }
 
   async function handleGoogleSignIn() {
@@ -449,6 +455,12 @@ Rules:
     sidebarToggle.addEventListener('click', () => {
       sidebar.classList.toggle('collapsed');
     });
+
+    if (mobileSidebarClose) {
+      mobileSidebarClose.addEventListener('click', () => {
+        sidebar.classList.add('collapsed');
+      });
+    }
 
     newChatBtn.addEventListener('click', () => {
       createNewThread();

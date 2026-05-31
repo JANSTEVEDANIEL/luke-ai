@@ -2862,3 +2862,43 @@ input, select, textarea {
   border-radius: 4px;
   font-family: var(--font-mono);
 }
+
+/* ====================================================
+   MOBILE SIDEBAR TOGGLING & HEADER
+   ==================================================== */
+.sidebar-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.mobile-sidebar-close-btn {
+  display: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.mobile-sidebar-close-btn span {
+  font-size: 20px;
+}
+
+@media (max-width: 768px) {
+  .mobile-sidebar-close-btn {
+    display: flex;
+  }
+}

@@ -2115,3 +2115,57 @@ input, select, textarea {
   width: 100%;
   margin-top: 8px;
 }
+
+/* ====================================================
+   USER DISPLAY NAME IN HEADER
+   ==================================================== */
+.user-display-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.2px;
+}
+
+@media (max-width: 768px) {
+  .user-display-name { display: none; }
+}
+
+/* Welcome screen user photo */
+.welcome-user-photo {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 20px rgba(var(--accent-rgb, 124,58,237), 0.3);
+}
+
+/* ====================================================
+   LANDING FADE-OUT ANIMATION
+   ==================================================== */
+.landing-overlay.fade-out {
+  animation: landingFadeOut 0.4s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes landingFadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(1.03); }
+}
+
+/* ====================================================
+   GOOGLE SIGN-IN BUTTON LOADING STATE
+   ==================================================== */
+.btn-google-signin:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-google-signin:disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}

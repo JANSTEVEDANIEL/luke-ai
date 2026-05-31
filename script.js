@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // ===== LUKE AI — Script =====
 // Developed by R Jan Steve Daniel
@@ -130,48 +130,95 @@ Rules:
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
-  // Handle return from Google redirect sign-in
-  // This runs once on page load and processes the result if user just signed in
-  getRedirectResult(auth).then((result) => {
-    if (result && result.user) {
-      // User just came back from Google sign-in — onAuthStateChanged will also fire
-      console.log('Redirect sign-in success:', result.user.displayName);
-    }
-  }).catch((error) => {
-    console.error('Redirect result error:', error.code, error.message);
-    if (error.code !== 'auth/no-current-user') {
-      alert('Sign-in error: ' + error.message);
-    }
-  });
+  // Additional DOM refs for personalization
+  const userDisplayName = $('user-display-name');
+  const welcomeTitle = $('welcome-title');
+  const welcomeSubtitle = $('welcome-subtitle');
+  const welcomeIcon = $('welcome-icon');
+  const welcomeUserPhoto = $('welcome-user-photo');
 
+  // ===== TIME-OF-DAY GREETING =====
+  function getGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 5) return 'Good night';
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    if (hour < 21) return 'Good evening';
+    return 'Good night';
+  }
+
+  function getMotivationalSubtitle() {
+    const subs = [
+      'What shall we build today? Your cognitive workspace is ready.',
+      'Ready to tackle something extraordinary today.',
+      'Your AI-powered workspace awaits. Let\'s create something great.',
+      'Another day of innovation. How can I help?',
+      'Let\'s turn ideas into code. What are we solving today?'
+    ];
+    return subs[Math.floor(Math.random() * subs.length)];
+  }
+
+  function updateWelcomeGreeting() {
+    const greeting = getGreeting();
+    if (currentUser && currentUser.displayName) {
+      const firstName = currentUser.displayName.split(' ')[0];
+      if (welcomeTitle) welcomeTitle.textContent = `${greeting}, ${firstName}.`;
+      // Show user photo in welcome
+      if (welcomeUserPhoto && currentUser.photoURL) {
+        welcomeUserPhoto.src = currentUser.photoURL;
+        welcomeUserPhoto.style.display = 'block';
+        if (welcomeIcon) welcomeIcon.style.display = 'none';
+      }
+    } else {
+      if (welcomeTitle) welcomeTitle.textContent = `${greeting}, Developer.`;
+      if (welcomeUserPhoto) welcomeUserPhoto.style.display = 'none';
+      if (welcomeIcon) welcomeIcon.style.display = 'block';
+    }
+    if (welcomeSubtitle) welcomeSubtitle.textContent = getMotivationalSubtitle();
+  }
 
   // ===== LANDING PAGE LOGIC =====
   function showLanding() {
     landingOverlay.classList.remove('hidden');
+    landingOverlay.classList.remove('fade-out');
   }
   function hideLanding() {
-    landingOverlay.classList.add('hidden');
+    landingOverlay.classList.add('fade-out');
+    setTimeout(() => {
+      landingOverlay.classList.add('hidden');
+    }, 400);
   }
 
   async function handleGoogleSignIn() {
     try {
-      // Use redirect — works on GitHub Pages, avoids popup blockers
-      await signInWithRedirect(auth, provider);
+      // Show loading state on buttons
+      const btns = document.querySelectorAll('.btn-google-signin');
+      btns.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; b.textContent = 'Signing in...'; });
+      
+      const result = await signInWithPopup(auth, provider);
+      // onAuthStateChanged will fire and handle the rest
+      console.log('Sign-in success:', result.user.displayName);
     } catch (error) {
       console.error('Sign in error:', error);
-      alert('Sign in failed: ' + error.message);
+      // Restore button states
+      const btns = document.querySelectorAll('.btn-google-signin');
+      btns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+      
+      // Only alert if it wasn't cancelled by user
+      if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+        alert('Sign-in failed: ' + error.message);
+      }
     }
   }
 
   function handleGuestContinue() {
     isGuestMode = true;
     hideLanding();
-    // Reset guest count if needed but keep storage persisted
-    // guestChatCount already loaded from storage
+    updateWelcomeGreeting();
   }
 
   function checkGuestLimit() {
-    if (!isGuestMode || currentUser) return true; // signed in = no limit
+    if (!isGuestMode || currentUser) return true;
     if (guestChatCount >= GUEST_CHAT_LIMIT) {
       guestLimitModal.style.display = 'flex';
       return false;
@@ -188,10 +235,7 @@ Rules:
   });
 
   // Header Auth Listeners
-  if (loginBtn) {
-    loginBtn.addEventListener('click', handleGoogleSignIn);
-  }
-
+  if (loginBtn) loginBtn.addEventListener('click', handleGoogleSignIn);
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
       try {
@@ -202,23 +246,40 @@ Rules:
     });
   }
 
-  // Monitor Auth State
+  // ===== MONITOR AUTH STATE =====
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     if (user) {
-      // Signed in — dismiss everything and show app
+      // ── SIGNED IN ──
       isGuestMode = false;
       hideLanding();
       guestLimitModal.style.display = 'none';
+
+      // Header UI
       loginBtn.style.display = 'none';
       userProfile.style.display = 'flex';
       userAvatar.src = user.photoURL || '';
       userAvatar.title = user.displayName || 'User';
+      if (userDisplayName) {
+        userDisplayName.textContent = user.displayName ? user.displayName.split(' ')[0] : '';
+      }
+
+      // Personalize welcome screen
+      updateWelcomeGreeting();
+
+      // Reset guest chat counter when signed in
+      guestChatCount = 0;
+      localStorage.setItem('luke_guest_chats', '0');
+
     } else {
-      // Signed out — show landing unless already in guest mode
+      // ── SIGNED OUT ──
       loginBtn.style.display = 'flex';
       userProfile.style.display = 'none';
       userAvatar.src = '';
+      if (userDisplayName) userDisplayName.textContent = '';
+
+      updateWelcomeGreeting();
+
       if (!isGuestMode) {
         showLanding();
       }
@@ -256,6 +317,7 @@ Rules:
   function init() {
     setStatus('ready', 'Ready');
     modelSelect.value = model;
+    updateWelcomeGreeting();
 
     // Load Theme
     const savedTheme = localStorage.getItem('luke_theme') || 'dark';

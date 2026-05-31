@@ -104,7 +104,8 @@
             <span class="material-symbols-outlined">login</span>
           </button>
           <div id="user-profile" class="user-profile" style="display:none">
-            <img id="user-avatar" class="user-avatar" src="" alt="Avatar">
+            <img id="user-avatar" class="user-avatar" src="" alt="Avatar" referrerpolicy="no-referrer">
+            <span id="user-display-name" class="user-display-name"></span>
             <button class="header-icon-btn" id="logout-btn" title="Sign Out" aria-label="Sign Out">
               <span class="material-symbols-outlined">logout</span>
             </button>
@@ -174,11 +175,12 @@
         <!-- Premium Welcome Bento Dashboard -->
         <div id="welcome-screen">
           <div class="welcome-hero animate-pulse-slow">
-            <div class="welcome-avatar">
-              <span class="material-symbols-outlined">flare</span>
+            <div class="welcome-avatar" id="welcome-avatar-container">
+              <span class="material-symbols-outlined" id="welcome-icon">flare</span>
+              <img id="welcome-user-photo" class="welcome-user-photo" src="" alt="" style="display:none" referrerpolicy="no-referrer">
             </div>
-            <h2 class="welcome-title">Good morning, Developer.</h2>
-            <p class="welcome-subtitle">What shall we build today? Your cognitive workspace is ready.</p>
+            <h2 class="welcome-title" id="welcome-title">Good morning, Developer.</h2>
+            <p class="welcome-subtitle" id="welcome-subtitle">What shall we build today? Your cognitive workspace is ready.</p>
           </div>
           
           <!-- Bento Grid Suggested Starters -->
